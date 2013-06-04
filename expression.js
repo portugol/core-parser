@@ -2,7 +2,7 @@
 		definitions= require('./definitions/dictionary'),
 		prio= require('./definitions/priorities'),
 		tokenTypes= require('./definitions/token_types'),
-		nodeTypes= require('../core-master/lib/nodes/definition'),
+		//this.nodeTypes= require('../core-master/lib/nodes/definition'),
 		Token=require('./token'),
 		util = require('util'),
 		Debug = require('./debug/debug'); 
@@ -24,7 +24,8 @@
 	var MATHFUNC_CALL = 1<< 16;
 	var PRIMARY      = (NUMBER | TEXT | BOOLEAN);
 
-	var Expression = function(nodeType_, isArgument, isDebug){
+	var Expression = function(definition, nodeType_, isArgument, isDebug){
+    this.nodeTypes = definition;
 		this.isArgument = isArgument || false;
 		this.isDebug = isDebug || false;
 		this.nodeType_=nodeType_;
@@ -374,7 +375,7 @@
 				if(this.isArgument){
 					this.throwError("Nao e permitido fazer atribuicao dentro do argumento de funcoes");
 				}
-				if(this.nodeType_!=nodeTypes.PROCESS){
+				if(this.nodeType_!=this.nodeTypes.PROCESS){
 					this.throwError("Nao e permitido fazer atribuicao");
 				}
 				var item=this.postfixStack[this.postfixStack.length-1];
