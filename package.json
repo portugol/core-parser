@@ -1,0 +1,15 @@
+{
+  "name": "core-parser",
+  "description": "Portugol core parser node.js",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/apocas/node-whmcs.git"
+  },
+  "keywords": [],
+  "dependencies": {},
+  "main": "./parser",
+  "engines": {
+    "node": ">= 0.4"
+  }
+}
