@@ -7,7 +7,7 @@ var Parser= require('./expression'),
 	rightUnaryOps=require('./definitions/right_unary_operators').rightUnaryOps,
 	Debug = require('./debug/debug'),
 	mathfuncs=require('./definitions/math_funcs').mathFuncs,
-	Evaluator=require('./evaluator'),
+	Var=require('./var'),
 	Token= require('./token'),
 	limits=require('./definitions/limits').limits;
 
