@@ -8,7 +8,6 @@ var Parser= require('./expression'),
 	Debug = require('./debug/debug'),
 	mathfuncs=require('./definitions/math_funcs').mathFuncs,
 	Evaluator=require('./evaluator'),
-	Var= require('../core-master/lib/var'),
 	Token= require('./token'),
 	limits=require('./definitions/limits').limits;
 
