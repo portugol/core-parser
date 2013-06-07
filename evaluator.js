@@ -17,13 +17,14 @@ var Evaluator = function(memory, isArgument){
 	this.memory = memory;
 };
 
-Evaluator.prototype.evaluate = function(postfixstack){
+Evaluator.prototype.evaluate = function(postfixstack,level){
 	this.tempstack=[];
 	this.postfixstack=postfixstack;
 	this.item={};
 	this.resultToken={};
 	this.token1={};
 	this.token2={};
+	this.level=level;
 
 	this.checkMemoryVars(this.postfixstack,this.memory);
 
@@ -122,7 +123,7 @@ Evaluator.prototype.evaluate = function(postfixstack){
 			//se a variável não existir na memória
 			if(v===undefined){
 				//cria a variável (depois mudar o nível da variável!!!!!!!!!)
-				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,0));
+				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level));
 				return this.token2.value_;
 			}
 			//se a variável já existe e vai receber o mesmo tipo de dados

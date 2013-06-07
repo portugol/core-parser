@@ -25,7 +25,7 @@
 	var PRIMARY      = (NUMBER | TEXT | BOOLEAN);
 
 	var Expression = function(definition, nodeType_, isArgument, isDebug){
-    this.nodeTypes = definition;
+    	this.nodeTypes = definition;
 		this.isArgument = isArgument || false;
 		this.isDebug = isDebug || false;
 		this.nodeType_=nodeType_;
