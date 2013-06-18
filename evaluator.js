@@ -1,4 +1,4 @@
-var Parser= require('./expression'),
+var Expression= require('./expression'),
 	tokenTypes=require('./definitions/token_types'),
 	comp=require('./compatibility/binary_comp').binComp,
 	binLogicOps=require('./definitions/binary_logical_operators').logicalOps,
@@ -24,7 +24,7 @@ Evaluator.prototype.evaluate = function(postfixstack,level){
 	this.resultToken={};
 	this.token1={};
 	this.token2={};
-	this.level=level;
+	this.level=level||0;
 
 	this.checkMemoryVars(this.postfixstack,this.memory);
 
@@ -157,6 +157,10 @@ Evaluator.prototype.evaluate = function(postfixstack,level){
 	else{
 		return this.tempstack[0].value_;
 	}
+};
+
+Evaluator.prototype.evaluateStringExpr = function(expr){
+	return this.evaluate(new Expression().toPostfix(expr));
 };
 
 Evaluator.prototype.checkMemoryVars = function(stack,mem){
