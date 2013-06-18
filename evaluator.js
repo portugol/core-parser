@@ -160,7 +160,12 @@ Evaluator.prototype.evaluate = function(postfixstack,level){
 };
 
 Evaluator.prototype.evaluateStringExpr = function(expr){
-	return this.evaluate(new Expression().toPostfix(expr));
+	try{
+		return this.evaluate(new Expression().toPostfix(expr));
+	}
+	catch(e){
+		throw e;
+	}
 };
 
 Evaluator.prototype.checkMemoryVars = function(stack,mem){
