@@ -245,7 +245,7 @@
 			}
 			else if(this.isNot()){
 				if((expected & NOT) === 0){
-					//verifica se é factorial
+				//verifica se é factorial
 					if((expected & FACT) !== 0){
 						this.tokensymbol="!";
 						this.tokenprio=prio.UNARY;
@@ -368,7 +368,7 @@
 					this.tokenprio=prio.VALUE;
 					this.addOperand(tokenTypes.VAR);
 					//é esperado também um parentesis esquerdo porque pode ser uma função
-					expected = (ARITHMETICOP | LOGICOP | LPAREN | RPAREN | CALL);
+					expected = (ARITHMETICOP | LOGICOP | LPAREN | RPAREN | CALL | FACT);
 				}
 			}
 			else if(this.isAssign()){
@@ -385,7 +385,7 @@
 				else{
 					this.throwError(this.pos, "ATRIBUICAO INVALIDA");
 				}
-				expected = (PRIMARY | VAR | LPAREN | BITWISE_NOT);
+				expected = (PRIMARY | VAR | LPAREN | BITWISE_NOT | NOT | SIGNAL);
 			}
 			else if(this.isWhite()){
 				//salta espaço em branco
