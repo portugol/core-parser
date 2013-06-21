@@ -73,56 +73,56 @@ function getRealValue(token){
 }
 
 function sin(values){
-	return Math.sin(values[0]);
+	return Math.sin(values[0].value_);
 }
 
 function cos(values){
-	return Math.cos(values[0]);
+	return Math.cos(values[0].value_);
 }
 
 function tan(values){
-	return Math.tan(values[0]);
+	return Math.tan(values[0].value_);
 }
 
 function asin(values){
-	return Math.asin(values[0]);
+	return Math.asin(values[0].value_);
 }
 
 function acos(values){
-	return Math.acos(values[0]);
+	return Math.acos(values[0].value_);
 }
 
 function sqrt(values){
-	return Math.sqrt(values[0]);
+	return Math.sqrt(values[0].value_);
 }
 
 function log(values){
-	return Math.log(values[0])/(value[1] ? Math.log(values[1]) : Math.log(10));
+	return Math.log(values[0].value_)/(value[1].value_ ? Math.log(values[1].value_) : Math.log(10));
 }
 
 function ln(values){
-	return Math.log(values[0])/Math.log(Math.E);
+	return Math.log(values[0].value_)/Math.log(Math.E);
 }
 
 function abs(values){
-	return Math.abs(values[0]);
+	return Math.abs(values[0].value_);
 }
 
 function ceil(values){
-	return Math.ceil(values[0]);
+	return Math.ceil(values[0].value_);
 }
 
 function floor(values){
-	return Math.floor(values[0]);
+	return Math.floor(values[0].value_);
 }
 function round(values){
-	return Math.round(values[0]);
+	return Math.round(values[0].value_);
 }
 function pyt(values) {
-	return Math.sqrt(values[0] * values[0]+ values[1] * values[1]);
+	return Math.sqrt(values[0].value_ * values[0].value_+ values[1].value_ * values[1].value_);
 }
 function ceil(values){
-	return Math.ceil(values[0]);
+	return Math.ceil(values[0].value_);
 }
 
 
