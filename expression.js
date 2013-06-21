@@ -64,8 +64,16 @@
 		this.parameterStack=[];
 		
 		//SE A EXPRESSAO É NULA (tamanho=0)
-		if(expr.length===0){
-			return []; //devolve array vazio
+		try{
+			if(expr.length===0){
+				return []; //devolve array vazio
+			}
+		}
+		catch(e){
+			if(expr===null || expr===undefined){
+				return [];
+			}
+			throw e;
 		}
 
 		while(this.pos<this.expr.length){
@@ -487,6 +495,8 @@
 			this.numOperands++; //é esperado 1 operando
 		}
 		if(type_===tokenTypes.MATHFUNC){
+			console.log("EXPRESSSIONNNNNNNNNNNN");
+			console.log(this.tokenprio);
 			this.numOperands++; //é esperado 1 operando
 		}
 		if(type_===tokenTypes.COMMA){
@@ -530,13 +540,18 @@
 			o operador anterior passa da stack de operadores para a stack pós fixa
 			e depois o novo operador é passado para a stack de operadores.*/
 			if(this.operStack.length>0){
+				while((this.operStack.length>0) && this.isntPrio(operator.prio_)){
+					this.postfixStack.push(this.operStack.pop());
+				}
+				this.operStack.push(operator);
+				/*
 				if(this.isntPrio(operator.prio_)){
 					this.postfixStack.push(this.operStack.pop());
 					this.operStack.push(operator);
 				}
 				else{
 					this.operStack.push(operator);
-				}
+				}*/
 			}
 			else{
 				this.operStack.push(operator);
@@ -547,6 +562,7 @@
 	//Compara a prioridade recebida por parâmetro com o topo da pilha de operadores
 	Expression.prototype.isntPrio = function(prio){
 		//faz peek (copia valor sem retirar da pilha)
+		console.log(this.operStack.length);
 		var lasttoken = this.operStack[this.operStack.length-1];
 		//só compara prioridade se o topo da pilha de operadores não tiver um par. esq.
 		if(lasttoken.symbol!="("){
