@@ -43,6 +43,7 @@ Evaluator.prototype.evaluate = function(node,level){
 		throw "A stack pos fixa esta vazia no evaluator";
 	}
 	this.checkMemoryVars(this.postfixstack,this.memory);
+	this.checkFunctions(this.postfixstack);
 
 	while(this.postfixstack.length>0){
 		//o shift remove o primeiro elemento da pilha
@@ -224,6 +225,14 @@ Evaluator.prototype.checkMemoryVars = function(stack,mem){
 			else{
 				this.throwError("A variavel "+stack[i].value_+" nao esta definida");
 			}
+		}
+	}
+};
+
+Evaluator.prototype.checkFunctions = function(stack){
+	for(var i=0; i<stack.length; i++){
+		if(stack[i].type_==tokenTypes.FUNC){
+			this.throwError("As funções ainda não se encontram implementadas :)");
 		}
 	}
 };
