@@ -1,4 +1,4 @@
-var Parser= require('./expression'),
+var Expression= require('./expression'),
 	tokenTypes=require('./definitions/token_types'),
 	comp=require('./compatibility/binary_comp').binComp,
 	binLogicOps=require('./definitions/binary_logical_operators').logicalOps,
@@ -12,20 +12,38 @@ var Parser= require('./expression'),
 	limits=require('./definitions/limits').limits;
 
 
-var Evaluator = function(memory, isArgument){
+var Evaluator = function(definition, memory, isArgument){
+	this.nodeTypes=definition;
 	this.isArgument = isArgument || false;
 	this.memory = memory;
 };
 
-Evaluator.prototype.evaluate = function(postfixstack){
+Evaluator.prototype.evaluate = function(node,level){
 	this.tempstack=[];
-	this.postfixstack=postfixstack;
+
+
+	//se for argumento de função usa a stack de parametros
+	if(this.isArgument===true){
+		this.postfixstack=node.parameterStack;
+	}
+	else{
+		this.postfixstack=node.postfixStack;
+	}
+
 	this.item={};
 	this.resultToken={};
 	this.token1={};
 	this.token2={};
+	this.level=level||0;
 
+	if(this.postfixstack===undefined || this.postfixstack===null){
+		throw "A stack pos fixa esta undefined ou null no evaluator";
+	}
+	if(this.postfixstack.length<1){
+		throw "A stack pos fixa esta vazia no evaluator";
+	}
 	this.checkMemoryVars(this.postfixstack,this.memory);
+	this.checkFunctions(this.postfixstack);
 
 	while(this.postfixstack.length>0){
 		//o shift remove o primeiro elemento da pilha
@@ -105,9 +123,10 @@ Evaluator.prototype.evaluate = function(postfixstack){
 				this.throwError("Erro de paridade");
 			}
 			try{
-				var e = new Evaluator(this.memory,true);
-				var params=e.evaluate(this.token1.parameterStack);
+				var e = new Evaluator(this.nodeTypes,this.memory,true);
+				var params=e.evaluate(this.token1,this.level);
 				this.resultToken=mathfuncs.calculate(params,this.item);
+				
 			}
 			catch(err){
 				this.throwError(err);
@@ -122,7 +141,7 @@ Evaluator.prototype.evaluate = function(postfixstack){
 			//se a variável não existir na memória
 			if(v===undefined){
 				//cria a variável (depois mudar o nível da variável!!!!!!!!!)
-				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,0));
+				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level));
 				return this.token2.value_;
 			}
 			//se a variável já existe e vai receber o mesmo tipo de dados
@@ -132,6 +151,27 @@ Evaluator.prototype.evaluate = function(postfixstack){
 			}
 			else{
 				this.throwError("nao e possivel a atribuir o valor "+this.token2.value_+" a variavel "+v.name_);
+			}
+		}
+		else{
+			//NO CASO DA EXPRESSÃO NÃO TER OPERADORES
+			this.resultToken=this.tempstack[0];
+		}
+	}
+	//criar variável na memória ou actualizar se for um nó do tipo READ
+	if(node.type==this.nodeTypes.READ){
+		var varName=node.data;
+		var variable=this.memory.getVar(varName);
+		if(variable===undefined){
+			this.memory.addVar(new Var(varName,this.resultToken.type_,this.resultToken.value_,this.level));
+		}
+		else{
+			var type=this.memory.getVar(varName).type_;
+			if(type==this.resultToken.type_){
+				this.memory.setValue(varName,this.resultToken.value_);
+			}
+			else{
+				this.throwError("Nao e possivel actualizar o conteudo da variavel para outro tipo");
 			}
 		}
 	}
@@ -152,11 +192,21 @@ Evaluator.prototype.evaluate = function(postfixstack){
 	}
 	if(this.resultToken.type_==tokenTypes.BOOLEAN){
 		return this.resultToken.value_;
-	}
+	}/*
 	else{
 		return this.tempstack[0].value_;
-	}
+	}*/
 };
+
+/*
+Evaluator.prototype.evaluateStringExpr = function(expr){
+	try{
+		return this.evaluate(new Expression().toPostfix(expr));
+	}
+	catch(e){
+		throw e;
+	}
+};*/
 
 Evaluator.prototype.checkMemoryVars = function(stack,mem){
 	var i=0;
@@ -175,6 +225,14 @@ Evaluator.prototype.checkMemoryVars = function(stack,mem){
 			else{
 				this.throwError("A variavel "+stack[i].value_+" nao esta definida");
 			}
+		}
+	}
+};
+
+Evaluator.prototype.checkFunctions = function(stack){
+	for(var i=0; i<stack.length; i++){
+		if(stack[i].type_==tokenTypes.FUNC){
+			this.throwError("As funções ainda não se encontram implementadas :)");
 		}
 	}
 };

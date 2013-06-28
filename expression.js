@@ -25,7 +25,7 @@
 	var PRIMARY      = (NUMBER | TEXT | BOOLEAN);
 
 	var Expression = function(definition, nodeType_, isArgument, isDebug){
-    this.nodeTypes = definition;
+    	this.nodeTypes = definition;
 		this.isArgument = isArgument || false;
 		this.isDebug = isDebug || false;
 		this.nodeType_=nodeType_;
@@ -64,8 +64,16 @@
 		this.parameterStack=[];
 		
 		//SE A EXPRESSAO É NULA (tamanho=0)
-		if(expr.length===0){
-			return []; //devolve array vazio
+		try{
+			if(expr.length===0){
+				return []; //devolve array vazio
+			}
+		}
+		catch(e){
+			if(expr===null || expr===undefined){
+				return [];
+			}
+			throw e;
 		}
 
 		while(this.pos<this.expr.length){
@@ -245,7 +253,7 @@
 			}
 			else if(this.isNot()){
 				if((expected & NOT) === 0){
-					//verifica se é factorial
+				//verifica se é factorial
 					if((expected & FACT) !== 0){
 						this.tokensymbol="!";
 						this.tokenprio=prio.UNARY;
@@ -368,7 +376,7 @@
 					this.tokenprio=prio.VALUE;
 					this.addOperand(tokenTypes.VAR);
 					//é esperado também um parentesis esquerdo porque pode ser uma função
-					expected = (ARITHMETICOP | LOGICOP | LPAREN | RPAREN | CALL);
+					expected = (ARITHMETICOP | LOGICOP | LPAREN | RPAREN | CALL | FACT);
 				}
 			}
 			else if(this.isAssign()){
@@ -385,7 +393,7 @@
 				else{
 					this.throwError(this.pos, "ATRIBUICAO INVALIDA");
 				}
-				expected = (PRIMARY | VAR | LPAREN | BITWISE_NOT);
+				expected = (PRIMARY | VAR | LPAREN | BITWISE_NOT | NOT | SIGNAL);
 			}
 			else if(this.isWhite()){
 				//salta espaço em branco
@@ -487,6 +495,8 @@
 			this.numOperands++; //é esperado 1 operando
 		}
 		if(type_===tokenTypes.MATHFUNC){
+			console.log("EXPRESSSIONNNNNNNNNNNN");
+			console.log(this.tokenprio);
 			this.numOperands++; //é esperado 1 operando
 		}
 		if(type_===tokenTypes.COMMA){
@@ -530,13 +540,18 @@
 			o operador anterior passa da stack de operadores para a stack pós fixa
 			e depois o novo operador é passado para a stack de operadores.*/
 			if(this.operStack.length>0){
+				while((this.operStack.length>0) && this.isntPrio(operator.prio_)){
+					this.postfixStack.push(this.operStack.pop());
+				}
+				this.operStack.push(operator);
+				/*
 				if(this.isntPrio(operator.prio_)){
 					this.postfixStack.push(this.operStack.pop());
 					this.operStack.push(operator);
 				}
 				else{
 					this.operStack.push(operator);
-				}
+				}*/
 			}
 			else{
 				this.operStack.push(operator);
@@ -547,6 +562,7 @@
 	//Compara a prioridade recebida por parâmetro com o topo da pilha de operadores
 	Expression.prototype.isntPrio = function(prio){
 		//faz peek (copia valor sem retirar da pilha)
+		console.log(this.operStack.length);
 		var lasttoken = this.operStack[this.operStack.length-1];
 		//só compara prioridade se o topo da pilha de operadores não tiver um par. esq.
 		if(lasttoken.symbol!="("){
