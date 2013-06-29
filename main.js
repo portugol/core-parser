@@ -6,10 +6,10 @@ var binops=require('./definitions/binary_operators').binops;
 var Evaluator = require('./evaluator');
 var unaryLeftComp=require('./compatibility/unary_left_comp').unaryLeftComp;
 var u=require('./compatibility/unary_right_comp').unaryRightComp;
-var nodeTypes= require('../core-master/lib/nodes/definition');
-var Memory= require('../core-master/lib/memory');
-var Var= require('../core-master/lib/var');
-var Graph = require('../core-master/lib/graph');
+var nodeTypes= require('../core/lib/nodes/definition');
+var Memory= require('../core/lib/memory');
+var Var= require('./var');
+var Graph = require('../core/lib/graph');
 var Parser = require('./parser');
 var util=require('util');
 var sys = require('sys');
@@ -76,11 +76,12 @@ try{
        }
     };
 
-var g = new Graph();
+var evaluator= new Evaluator();
 
-g.validate(json.root);
-g.execute(g.root);
-console.log(g.memory);
+var result=evaluator.evaluateStringExpr("4!");
+
+console.log(result);
+
 
 
 
