@@ -8,6 +8,7 @@ var Expression= require('./expression'),
 	Debug = require('./debug/debug'),
 	mathfuncs=require('./definitions/math_funcs').mathFuncs,
 	Var=require('./var'),
+	varTypes=require('./definitions/var_types'),
 	Token= require('./token'),
 	limits=require('./definitions/limits').limits;
 
@@ -141,7 +142,7 @@ Evaluator.prototype.evaluate = function(node,level){
 			//se a variável não existir na memória
 			if(v===undefined){
 				//cria a variável (depois mudar o nível da variável!!!!!!!!!)
-				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level));
+				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level,this.getVarTypeName(this.token2.type_)));
 				return this.token2.value_;
 			}
 			//se a variável já existe e vai receber o mesmo tipo de dados
@@ -163,7 +164,7 @@ Evaluator.prototype.evaluate = function(node,level){
 		var varName=node.data;
 		var variable=this.memory.getVar(varName);
 		if(variable===undefined){
-			this.memory.addVar(new Var(varName,this.resultToken.type_,this.resultToken.value_,this.level));
+			this.memory.addVar(new Var(varName,this.resultToken.type_,this.resultToken.value_,this.level,this.getVarTypeName(this.token2.type_)));
 		}
 		else{
 			var type=this.memory.getVar(varName).type_;
@@ -248,6 +249,10 @@ Evaluator.prototype.checkCompatibility = function(token1, operator, token2){
 
 Evaluator.prototype.getFinalType = function(token1, token2){
 	return comp.getFinalType(type1.type_, type2.type_);
+};
+
+Evaluator.prototype.getVarTypeName = function(typeValue){
+	return varTypes[typeValue];
 };
 
 Evaluator.prototype.throwError = function(msg){
