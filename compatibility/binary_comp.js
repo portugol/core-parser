@@ -1,8 +1,5 @@
 var tokenTypes= require('../definitions/token_types'),
 util = require('util');
-//**********************************************
-// TIPOS DE VARIAVEL COMPATIVEIS ENTRE OPERAÇÕES
-//**********************************************
 
 var lists = {
 	integerList: {
@@ -11,7 +8,7 @@ var lists = {
 		"/":  tokenTypes.NUMBER,
 		"*":  tokenTypes.NUMBER,
 		"**": tokenTypes.NUMBER,
-		"%":  tokenTypes.NUMBER,
+		"%":  tokenTypes.INTEGER,
 		"==": (tokenTypes.NUMBER | tokenTypes.CHAR),
 		"!=": (tokenTypes.NUMBER | tokenTypes.CHAR),
 		"<=": (tokenTypes.NUMBER | tokenTypes.CHAR),
@@ -31,7 +28,6 @@ var lists = {
 		"/":  tokenTypes.NUMBER,
 		"*":  tokenTypes.NUMBER,
 		"**": tokenTypes.NUMBER,
-		"%":  tokenTypes.NUMBER,
 		"==": tokenTypes.NUMBER,
 		"!=": tokenTypes.NUMBER,
 		"<=": tokenTypes.NUMBER,
@@ -72,51 +68,6 @@ var lists = {
 
 
 module.exports.binComp = {
-	//construtor
-
-	INTEGER: tokenTypes.INTEGER,
-	REAL: tokenTypes.REAL,
-	STRING: tokenTypes.STRING,
-	CHAR:   tokenTypes.CHAR,
-	BOOLEAN: tokenTypes.BOOLEAN,
-	NULL:    tokenTypes.NULL,
-	ALL:     tokenTypes.ALL,
-	NUMBER:  tokenTypes.NUMBER,
-
-	//*******************************************
-	// TIPOS DE VARIAVEL RESULTANTES DE OPERAÇÕES
-	//*******************************************
-
-	/*
-	var tokenTypes.INTEGERVars ={
-		tokenTypes.INTEGER: tokenTypes.tokenTypes.INTEGER,
-		tokenTypes.REAL: tokenTypes.tokenTypes.REAL,
-		tokenTypes.STRING: tokenTypes.tokenTypes.STRING,
-		tokenTypes.CHAR: tokenTypes.tokenTypes.CHAR
-	};
-	var tokenTypes.REALVars ={
-		tokenTypes.INTEGER: tokenTypes.tokenTypes.REAL,
-		tokenTypes.REAL: tokenTypes.tokenTypes.REAL,
-		tokenTypes.STRING: tokenTypes.tokenTypes.STRING
-	};
-
-	var tokenTypes.STRINGVars ={
-		tokenTypes.INTEGER: tokenTypes.tokenTypes.STRING,
-		tokenTypes.REAL: tokenTypes.tokenTypes.STRING,
-		tokenTypes.STRING: tokenTypes.tokenTypes.STRING,
-		tokenTypes.CHAR: tokenTypes.tokenTypes.STRING
-	};
-
-	var tokenTypes.CHARVars ={
-		tokenTypes.INTEGER: tokenTypes.tokenTypes.CHAR,
-		tokenTypes.STRING: tokenTypes.tokenTypes.STRING,
-		tokenTypes.CHAR: tokenTypes.tokenTypes.CHAR
-	};
-
-	var tokenTypes.BOOLEANVars ={
-		tokenTypes.BOOLEAN: tokenTypes.tokenTypes.BOOLEAN
-	};*/
-
 
 	varResult: [
 	{
@@ -211,7 +162,6 @@ module.exports.binComp = {
 	}
 	],
 
-
 	checkCompatibility: function(tokenType1, tokenType2, operatorSymbol){
 		var list;
 		var operandCode;
@@ -258,7 +208,6 @@ module.exports.binComp = {
 			throw Error("tipo invalid");
 		}
 
-
 		//verificar se o tokenType1 suporta a operação cujo símbolo é igual ao operatorSymbol
 		if(operatorSymbol in list){
 			//verificar se a operação é suportada entre o tokenType1 e o tokenType2
@@ -272,29 +221,6 @@ module.exports.binComp = {
 	getFinalType: function(varType1, varType2){
 		var list;
 		var finalType;
-
-		/*
-		//escolhe a lista de compatibilidade adequada ao tokenType1
-		switch (varType1) {
-			case tokenTypes.INTEGER:
-				list=tokenTypes.INTEGERVars;
-				break;
-			case tokenTypes.REAL:
-				list=tokenTypes.REALVars;
-				break;
-			case tokenTypes.CHAR:
-				list=tokenTypes.CHARVars;
-				break;
-			case tokenTypes.STRING:
-				list=tokenTypes.STRINGVars;
-				break;
-			case tokenTypes.BOOLEAN:
-				list=tokenTypes.BOOLEANVars;
-				break;
-			default:
-				throw Error("tipo invalido");
-			}*/
-
 
 		//percorre os vários tipos de variável do array varResult
 		for(var i=0; i<this.varResult.length; i++){
@@ -319,5 +245,4 @@ module.exports.binComp = {
 		//devolve o tipo de variável resultante
 		return finalType;
 	}
-
 };
