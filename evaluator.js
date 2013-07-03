@@ -38,10 +38,12 @@ Evaluator.prototype.evaluate = function(node,level){
 	this.level=level||0;
 
 	if(this.postfixstack===undefined || this.postfixstack===null){
-		throw "A stack pos fixa esta undefined ou null no evaluator";
+		console.log("A stack pos fixa esta undefined ou null no evaluator");
+		throw "Erro não esperado";
 	}
 	if(this.postfixstack.length<1){
-		throw "A stack pos fixa esta vazia no evaluator";
+		console.log("A stack pos fixa esta vazia no evaluator");
+		throw "Erro não esperado";
 	}
 	this.checkMemoryVars(this.postfixstack,this.memory);
 	this.checkFunctions(this.postfixstack);
@@ -151,7 +153,7 @@ Evaluator.prototype.evaluate = function(node,level){
 				return this.token2.value_;
 			}
 			else{
-				this.throwError("nao e possivel a atribuir o valor "+this.token2.value_+" a variavel "+v.name_);
+				this.throwError("Não é possível a atribuir o valor "+this.token2.value_+" à variavel "+v.name_);
 			}
 		}
 		else{
@@ -172,7 +174,7 @@ Evaluator.prototype.evaluate = function(node,level){
 				this.memory.setValue(varName,this.resultToken.value_);
 			}
 			else{
-				this.throwError("Nao e possivel actualizar o conteudo da variavel para outro tipo");
+				this.throwError("Não é possível actualizar o conteúdo da variável "+varName+"para outro tipo");
 			}
 		}
 	}
@@ -224,7 +226,7 @@ Evaluator.prototype.checkMemoryVars = function(stack,mem){
 				stack[i]=new Token(v.type_,v.value_);
 			}
 			else{
-				this.throwError("A variavel "+stack[i].value_+" nao esta definida");
+				this.throwError("A variável "+stack[i].value_+" nao está definida");
 			}
 		}
 	}
@@ -256,7 +258,7 @@ Evaluator.prototype.getVarTypeName = function(typeValue){
 };
 
 Evaluator.prototype.throwError = function(msg){
-	throw new Error("EVALUATOR ERROR:" + msg);
+	throw new Error(msg);
 };
 
 module.exports=Evaluator;
