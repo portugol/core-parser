@@ -153,7 +153,7 @@ Evaluator.prototype.evaluate = function(node,level){
 				return this.token2.value_;
 			}
 			else{
-				this.throwError("Não é possível a atribuir o valor "+this.token2.value_+" à variavel "+v.name_);
+				this.throwError("Não é possível a atribuir o valor "+this.token2.value_+" à variavel "+v.name_ +" ("+v.typeName_+")");
 			}
 		}
 		else{
