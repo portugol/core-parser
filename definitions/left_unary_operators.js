@@ -29,11 +29,11 @@ module.exports.leftUnaryOps ={
 		var result =func(value1);
 
 		if(finalType==tokenTypes.INTEGER){
-			result=parseInt(result,10).toPrecision(12);
+			result=parseInt(result,10);
 			return new Token(tokenTypes.INTEGER, result);
 		}
 		if(finalType==tokenTypes.REAL){
-			result=parseFloat(result).toPrecision(12);
+			result=parseFloat(result);
 			return new Token(tokenTypes.REAL, result);
 		}
 		if(finalType==tokenTypes.CHAR){
@@ -69,6 +69,7 @@ function getRealValue(token){
 }
 
 function bitwiseNot(value){
+	//32 bits bitwise not
 	return (~value);
 }
 
