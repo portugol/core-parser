@@ -20,12 +20,12 @@ var finalType={};
 module.exports.logicalOps ={
 	calculate: function(token1, token2, operatorToken){
 		if(!(checkCompatibility(token1, token2, operatorToken))){
-			throw "Operacao entre tipos incompativeis";
+			throw "Operação entre tipos incompatíveis";
 		}
 		//guarda a função javascript que faz a operação (de acordo com o símbolo operatório)
 		var func=ops[operatorToken.value_];
 		if(func===undefined){
-			throw "Operador nao definido";
+			throw "Operador não definido";
 		}
 		//converte símbolos para valores
 		var value1 = token1.value_;
