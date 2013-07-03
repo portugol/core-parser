@@ -13,13 +13,13 @@ var finalType={};
 module.exports.rightUnaryOps ={
 	calculate: function(token1, operatorToken){
 		if(!(checkCompatibility(token1, operatorToken))){
-			throw "A operacao nao pode ser efectuada com dados deste tipo";
+			throw "A operação não pode ser efectuada com dados deste tipo";
 		}
 		//guarda a função javascript que faz a operação (de acordo com o símbolo operatório)
 		var func=ops[operatorToken.value_];
 		finalType=token1.type_;
 		if(func===undefined){
-			throw "Operador nao definido";
+			throw "Operador não definido";
 		}
 		//guarda o valor
 		var value1 =token1.value_;
@@ -66,7 +66,7 @@ function getRealValue(token){
 function factorial(value){
 	if(value<0){
 		//console.log(value);
-		throw "Factorial de numero negativo";
+		throw "Factorial de número negativo";
 	}
 	if(value===0){
 		return 1;

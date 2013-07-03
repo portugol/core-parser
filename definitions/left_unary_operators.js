@@ -15,13 +15,13 @@ var finalType={};
 module.exports.leftUnaryOps ={
 	calculate: function(token1, operatorToken){
 		if(!(checkCompatibility(token1, operatorToken))){
-			throw "A operacao nao pode ser efectuada com dados deste tipo";
+			throw "A operação não pode ser efectuada com dados deste tipo";
 		}
 		//guarda a função javascript que faz a operação (de acordo com o símbolo operatório)
 		var func=ops[operatorToken.value_];
 		finalType=token1.type_;
 		if(func===undefined){
-			throw "Operador nao definido";
+			throw "Operador não definido";
 		}
 		//converte símbolo para valor
 		var value1 =token1.value_;

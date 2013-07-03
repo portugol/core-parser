@@ -17,19 +17,19 @@ module.exports.mathFuncs ={
 				if(numParams==dictionary[i].params){
 					for(var j=0; j<numParams; j++){
 						if((values[j].type_ & dictionary[i].paramTypes[j])===0){
-							throw "o tipo do parametro "+j+" e invalido";
+							throw "O tipo do parâmetro "+j+" é inválido";
 						}
 					}
 				}
 				else{
-					throw "numero de parametros invalido";
+					throw "Número de parâmetros inválido";
 				}
 				break;
 			}
 		}
 		finalType=tokenTypes.REAL;
 		if(func===undefined){
-			throw "Operador nao definido";
+			throw "Operador não definido";
 		}
 
 		//guarda o resultado da operação
