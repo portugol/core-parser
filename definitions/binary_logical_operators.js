@@ -1,8 +1,8 @@
 var tokenTypes=require('./token_types'),
-comp=require('../compatibility/binary_comp').binComp,
 prio= require('./priorities'),
 Token=require('../token'),
-limits=require('./limits').limits;
+limits=require('./limits').limits,
+conversions=require('./conversions').conversions;
 
 var ops={
 	"==": equals,
@@ -19,26 +19,28 @@ var finalType={};
 
 module.exports.logicalOps ={
 	calculate: function(token1, token2, operatorToken){
-		if(!(checkCompatibility(token1, token2, operatorToken))){
+		if(!(conversions.checkCompatibility(token1, token2, operatorToken))){
 			throw "Operação entre tipos incompatíveis";
 		}
+		finalType=conversions.getFinalType(token1,token2);
+
 		//guarda a função javascript que faz a operação (de acordo com o símbolo operatório)
 		var func=ops[operatorToken.value_];
 		if(func===undefined){
 			throw "Operador não definido";
 		}
+		
 		//converte símbolos para valores
-		var value1 = token1.value_;
-		var value2 = token2.value_;
+		var value1 =conversions.convertToValue(token1,finalType);
+		var value2 =conversions.convertToValue(token2,finalType);
+
 		//guarda o resultado da operação
 		var result =func(value1,value2);
 		return new Token(tokenTypes.BOOLEAN, result);
 	}
 };
 
-function checkCompatibility(token1, token2, operatorToken){
-	return comp.checkCompatibility(token1.type_, token2.type_, operatorToken.value_);
-}
+
 
 function equals(value1,value2){
 	return (value1==value2);
