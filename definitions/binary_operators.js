@@ -1,7 +1,7 @@
 var tokenTypes=require('./token_types'),
-comp=require('../compatibility/binary_comp').binComp,
 Token=require('../token'),
-limits=require('./limits').limits;
+limits=require('./limits').limits,
+conversions=require('./conversions').conversions;
 
 var ops={
 	"+": add,
@@ -21,18 +21,18 @@ var finalType={};
 
 module.exports.binaryOps ={
 	calculate: function(token1, token2, operatorToken){
-		if(!(checkCompatibility(token1, token2, operatorToken))){
+		if(!(conversions.checkCompatibility(token1, token2, operatorToken))){
 			throw "Operação entre tipos incompatíveis";
 		}
-		finalType=getFinalType(token1,token2);
+		finalType=conversions.getFinalType(token1,token2);
 		//guarda a função javascript que faz a operação (de acordo com o símbolo operatório)
 		var func=ops[operatorToken.value_];
 		if(func===undefined){
 			throw "Operador não definido";
 		}
 		//converte símbolos para valores
-		var value1 =convertToValue(token1,finalType);
-		var value2 =convertToValue(token2,finalType);
+		var value1 =conversions.convertToValue(token1,finalType);
+		var value2 =conversions.convertToValue(token2,finalType);
 
 		//guarda o resultado da operação
 		var result =func(value1,value2);
@@ -54,44 +54,6 @@ module.exports.binaryOps ={
 		}
 	}
 };
-
-
-function convertToValue(token, finalType){
-	if(finalType==tokenTypes.INTEGER){
-		return getIntValue(token);
-	}
-	if(finalType==tokenTypes.REAL){
-		return getRealValue(token);
-	}
-	if(finalType==tokenTypes.CHAR){
-		return getIntValue(token);
-	}
-	if(finalType==tokenTypes.STRING){
-		return token.value_;
-	}
-}
-
-function getFinalType(token1, token2){
-	return comp.getFinalType(token1.type_, token2.type_);
-}
-
-function checkCompatibility(token1, token2, operatorToken){
-	return comp.checkCompatibility(token1.type_, token2.type_, operatorToken.value_);
-}
-
-function getIntValue(token){
-	if(token.type_==tokenTypes.CHAR){
-		return token.value_.charCodeAt(0);
-	}
-	return parseInt(token.value_,10);
-}
-
-function getRealValue(token){
-	if(token.type_==tokenTypes.CHAR){
-		return this.getCharCode(token.value_);
-	}
-	return parseFloat(token.value_);
-}
 
 function add(value1, value2){
 	return value1+value2;
