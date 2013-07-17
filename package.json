@@ -11,5 +11,12 @@
   "main": "./parser",
   "engines": {
     "node": ">= 0.4"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*"
+  },
+  "scripts": {
+    "test": "mocha --ui exports --reporter list"
   }
 }
