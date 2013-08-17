@@ -1,0 +1,10 @@
+module.exports={
+  1:"BEGIN",
+  2:"END",
+  3:"WRITE",
+  4:"READ",
+  5:"PROCESS",
+  6:"IF",
+  7:"JOIN",
+  8:"RETURN"
+};
