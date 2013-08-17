@@ -30,9 +30,9 @@ module.exports.logicalOps ={
 			throw "Operador não definido";
 		}
 		
-		//converte símbolos para valores
-		var value1 =conversions.convertToValue(token1,finalType);
-		var value2 =conversions.convertToValue(token2,finalType);
+		//operandos
+		var value1 =token1.value_;
+		var value2 =token2.value_;
 
 		//guarda o resultado da operação
 		var result =func(value1,value2);
