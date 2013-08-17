@@ -3,7 +3,9 @@ binComp=require('../compatibility/binary_comp').binComp,
 comp=require('../compatibility/unary_left_comp').unaryLeftComp,
 Token=require('../token'),
 dictionary=require('./dictionary'),
-limits=require('./limits').limits;
+limits=require('./limits').limits,
+EvaluatorError=require('../errors/evaluator_error'),
+conversions=require('./conversions').conversions;
 
 var finalType={};
 module.exports.mathFuncs ={
@@ -16,13 +18,23 @@ module.exports.mathFuncs ={
 				func=eval(operatorToken.value_); //guarda a função JS de acordo com o value do token
 				if(numParams==dictionary[i].params){
 					for(var j=0; j<numParams; j++){
-						if((values[j].type_ & dictionary[i].paramTypes[j])===0){
-							throw "O tipo do parâmetro "+j+" é inválido";
+						var parameter=values[j];
+						//se o tipo de parâmetro recebido não é compatível com o que é esperado
+						if((parameter.type_ & dictionary[i].paramTypes[j])===0){
+							//throw "O tipo do parâmetro "+j+" é inválido";
+							//"O parâmetro %parametro (%tipo) é inválido. É esperado um do tipo %tipo"
+							
+							var paramNumber=j+1; //avançar 1 posição porque começa em 0
+							var errorParameters=[paramNumber,parameter.symbol_,"VarTypes."+conversions.codeToVarType(parameter.type_), operatorToken.funcName, "VarTypes."+conversions.codeToVarType(dictionary[i].paramTypes[j])];
+							throw new EvaluatorError("INVALID_PARAMETER",errorParameters);
 						}
 					}
 				}
 				else{
-					throw "Número de parâmetros inválido";
+					//throw "Número de parâmetros inválido";
+					//A função deve receber %s parâmetro(s). Introduziu %s parâmetro(s)
+					var errorParameters=[operatorToken.funcName,dictionary[i].params, numParams];
+					throw new EvaluatorError("INVALID_NUMBER_PARAMETERS",errorParameters);
 				}
 				break;
 			}
@@ -40,7 +52,7 @@ module.exports.mathFuncs ={
 			return new Token(tokenTypes.INTEGER, result);
 		}
 		if(finalType==tokenTypes.REAL){
-			result=parseFloat(result);
+			result=parseFloat(result.toPrecision(12));
 			return new Token(tokenTypes.REAL, result);
 		}
 		if(finalType==tokenTypes.CHAR){
