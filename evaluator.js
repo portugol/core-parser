@@ -10,13 +10,36 @@ var Expression= require('./expression'),
 	Var=require('./var'),
 	varTypes=require('./definitions/var_types'),
 	Token= require('./token'),
-	limits=require('./definitions/limits').limits;
+	limits=require('./definitions/limits').limits,
+	EvaluatorError=require('./errors/evaluator_error'),
+	ExpressionError=require('./errors/expression_error'),
+	conversions=require('./definitions/conversions').conversions,
+	dictionary = require('./definitions/dictionary'),
+	casts = require('./definitions/casts.js').casts;
 
 
-var Evaluator = function(definition, memory, isArgument){
+var Evaluator = function(definition, memory, lng, isArgument){
 	this.nodeTypes=definition;
 	this.isArgument = isArgument || false;
 	this.memory = memory;
+	this.lng=lng;
+
+	try{
+  		dictionary = require('./definitions/'+lng+'/dictionary');
+	}
+	catch(e){
+		dictionary = require('./definitions/dev/dictionary');
+	}
+};
+
+Evaluator.prototype.setLanguage = function(lng) {
+	this.lng=lng;
+	try{
+		dictionary = require('./definitions/'+lng+'/dictionary');
+	}
+	catch(e){
+		dictionary = require('./definitions/dev/dictionary');
+	}
 };
 
 Evaluator.prototype.evaluate = function(node,level){
@@ -37,13 +60,20 @@ Evaluator.prototype.evaluate = function(node,level){
 	this.token2={};
 	this.level=level||0;
 
-	if(this.postfixstack===undefined || this.postfixstack===null){
-		console.log("A stack pos fixa esta undefined ou null no evaluator");
-		throw "Erro não esperado";
+	//se a stack não tem items
+	if(this.postfixstack.length===0 ||this.postfixstack===undefined || this.postfixstack===null){
+		//se é argumento, significa que é um argumento vazio. retorna um array vazio
+		if(this.isArgument===true){
+			return [];
+		}
+		else{
+			console.log("A stack pos fixa esta undefined ou null no evaluator");
+			this.throwError("UNEXPECTED_ERROR");
+		}
 	}
 	if(this.postfixstack.length<1){
 		console.log("A stack pos fixa esta vazia no evaluator");
-		throw "Erro não esperado";
+		this.throwError("UNEXPECTED_ERROR");
 	}
 	this.checkMemoryVars(this.postfixstack,this.memory);
 	this.checkFunctions(this.postfixstack);
@@ -69,7 +99,7 @@ Evaluator.prototype.evaluate = function(node,level){
 			this.token2=this.tempstack.pop();
 			this.token1=this.tempstack.pop();
 			if(this.token1===undefined || this.token2===undefined){
-				this.throwError("Erro de paridade");
+				this.throwError("PARITY_ERROR");
 			}
 			try{
 				this.resultToken=binOps.calculate(this.token1, this.token2, this.item);
@@ -82,7 +112,7 @@ Evaluator.prototype.evaluate = function(node,level){
 		else if(this.item.type_==tokenTypes.UNARY_LEFT_OP){
 			this.token1=this.tempstack.pop();
 			if(this.token1===undefined){
-				this.throwError("Erro de paridade");
+				this.throwError("PARITY_ERROR");
 			}
 			try{
 				this.resultToken=leftUnaryOps.calculate(this.token1, this.item);
@@ -95,7 +125,7 @@ Evaluator.prototype.evaluate = function(node,level){
 		else if(this.item.type_==tokenTypes.UNARY_RIGHT_OP){
 			this.token1=this.tempstack.pop();
 			if(this.token1===undefined){
-				this.throwError("Erro de paridade");
+				this.throwError("PARITY_ERROR");
 			}
 			try{
 				this.resultToken=rightUnaryOps.calculate(this.token1, this.item);
@@ -109,7 +139,7 @@ Evaluator.prototype.evaluate = function(node,level){
 			this.token2=this.tempstack.pop();
 			this.token1=this.tempstack.pop();
 			if(this.token1===undefined || this.token2===undefined){
-				this.throwError("Erro de paridade");
+				this.throwError("PARITY_ERROR");
 			}
 			try{
 				this.resultToken=binLogicOps.calculate(this.token1, this.token2, this.item);
@@ -123,16 +153,21 @@ Evaluator.prototype.evaluate = function(node,level){
 			//argumento da função
 			this.token1=this.tempstack.pop();
 			if(this.token1===undefined){
-				this.throwError("Erro de paridade");
+				this.throwError("PARITY_ERROR");
 			}
+			var params;
 			try{
-				var e = new Evaluator(this.nodeTypes,this.memory,true);
-				var params=e.evaluate(this.token1,this.level);
-				this.resultToken=mathfuncs.calculate(params,this.item);
-				
+				var e = new Evaluator(this.nodeTypes,this.memory, this.lng, true);
+				params=e.evaluate(this.token1,this.level);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
+			}
+			try{
+				this.resultToken=mathfuncs.calculate(params,this.item);
+			}
+			catch(err){
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -144,7 +179,8 @@ Evaluator.prototype.evaluate = function(node,level){
 			//se a variável não existir na memória
 			if(v===undefined){
 				//cria a variável (depois mudar o nível da variável!!!!!!!!!)
-				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level,this.getVarTypeName(this.token2.type_)));
+				//this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level,this.getVarTypeName(this.token2.type_)));
+				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level,conversions.codeToVarType(this.token2.type_)));
 				return this.token2.value_;
 			}
 			//se a variável já existe e vai receber o mesmo tipo de dados
@@ -153,7 +189,14 @@ Evaluator.prototype.evaluate = function(node,level){
 				return this.token2.value_;
 			}
 			else{
-				this.throwError("Não é possível a atribuir o valor "+this.token2.value_+" à variavel "+v.name_ +" ("+v.typeName_+")");
+				try{
+					v.setValue(casts.castToType(this.token2,v.getType()));
+					return v.getValue();
+				}
+				catch(err){
+					var parameters=[this.token2.value_, "VarTypes."+conversions.codeToVarType(this.token2.type_), v.name_,"VarTypes."+conversions.codeToVarType(v.getType())];
+					this.throwError("INCOMPATIBLE_ASSIGN",parameters);
+				}
 			}
 		}
 		else{
@@ -165,16 +208,20 @@ Evaluator.prototype.evaluate = function(node,level){
 	if(node.type==this.nodeTypes.READ){
 		var varName=node.data;
 		var variable=this.memory.getVar(varName);
+		//se a variável não existe
 		if(variable===undefined){
-			this.memory.addVar(new Var(varName,this.resultToken.type_,this.resultToken.value_,this.level,this.getVarTypeName(this.token2.type_)));
+			//this.memory.addVar(new Var(varName,this.resultToken.type_,this.resultToken.value_,this.level,this.getVarTypeName(this.token2.type_)));
+			this.memory.addVar(new Var(varName,this.resultToken.type_,this.resultToken.value_,this.level,conversions.codeToVarType(this.resultToken.type_)));
 		}
 		else{
-			var type=this.memory.getVar(varName).type_;
-			if(type==this.resultToken.type_){
+			//se o tipo da variável é igual ao tipo do token
+			if(variable.type_==this.resultToken.type_){
 				this.memory.setValue(varName,this.resultToken.value_);
 			}
 			else{
-				this.throwError("Não é possível actualizar o conteúdo da variável "+varName+"para outro tipo");
+				//var parameters=[this.resultToken.value_, "VarTypes."+this.getVarTypeName(this.resultToken.type_), variable.name_,"VarTypes."+this.getVarTypeName(variable.type_)];
+				var parameters=[this.resultToken.value_, "VarTypes."+conversions.codeToVarType(this.resultToken.type_), variable.name_,"VarTypes."+conversions.codeToVarType(variable.type_)];
+				this.throwError("INCOMPATIBLE_UPDATE",parameters);
 			}
 		}
 	}
@@ -194,22 +241,20 @@ Evaluator.prototype.evaluate = function(node,level){
 		return this.resultToken.value_;
 	}
 	if(this.resultToken.type_==tokenTypes.BOOLEAN){
-		return this.resultToken.value_;
+		var result;
+		//procurar no dicionário a tradução para a língua utilizada
+		for(var i=0; i<=dictionary.length; i++){
+			if(dictionary[i].value==this.resultToken.value_){
+				result=dictionary[i].symbol;
+				break;
+			}
+		}
+		return result;
 	}/*
 	else{
 		return this.tempstack[0].value_;
 	}*/
 };
-
-/*
-Evaluator.prototype.evaluateStringExpr = function(expr){
-	try{
-		return this.evaluate(new Expression().toPostfix(expr));
-	}
-	catch(e){
-		throw e;
-	}
-};*/
 
 Evaluator.prototype.checkMemoryVars = function(stack,mem){
 	var i=0;
@@ -226,7 +271,8 @@ Evaluator.prototype.checkMemoryVars = function(stack,mem){
 				stack[i]=new Token(v.type_,v.value_);
 			}
 			else{
-				this.throwError("A variável "+stack[i].value_+" nao está definida");
+				var parameters=[stack[i].value_];
+				this.throwError("UNDEFINED_VAR",parameters);
 			}
 		}
 	}
@@ -235,7 +281,7 @@ Evaluator.prototype.checkMemoryVars = function(stack,mem){
 Evaluator.prototype.checkFunctions = function(stack){
 	for(var i=0; i<stack.length; i++){
 		if(stack[i].type_==tokenTypes.FUNC){
-			this.throwError("As funções ainda não se encontram implementadas :)");
+			this.throwError("FUNCTION_NOT_IMPLEMENTED");
 		}
 	}
 };
@@ -246,6 +292,9 @@ Evaluator.prototype.isntOperator= function(){
 };
 
 Evaluator.prototype.checkCompatibility = function(token1, operator, token2){
+	if(operator===undefined){
+
+	}
 	return comp.checkCompatibility(token1.type_, operator.value_, token2.type_);
 };
 
@@ -257,8 +306,11 @@ Evaluator.prototype.getVarTypeName = function(typeValue){
 	return varTypes[typeValue];
 };
 
-Evaluator.prototype.throwError = function(msg){
-	throw new Error(msg);
+Evaluator.prototype.throwError = function(errorCode, parameters){
+	if(parameters===undefined){
+		parameters=[];
+	}
+	throw new EvaluatorError(errorCode,parameters);
 };
 
 module.exports=Evaluator;
