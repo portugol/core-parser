@@ -41,7 +41,7 @@ module.exports.binaryOps ={
 			return new Token(tokenTypes.INTEGER, result);
 		}
 		if(finalType==tokenTypes.REAL){
-			result=parseFloat(result);
+			result=parseFloat(result.toPrecision(12));
 			return new Token(tokenTypes.REAL, result);
 		}
 		if(finalType==tokenTypes.CHAR){
