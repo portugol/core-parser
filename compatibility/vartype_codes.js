@@ -1,8 +1,8 @@
 module.exports= {
 	INTEGER: 1<<0,
 	REAL:    1<<1,
-	STRING:  1<<2,
-	CHAR:    1<<3,
+	CHAR:    1<<2,
+	STRING:  1<<3,
 	BOOLEAN: 1<<4,
 	NULL:    1<<5,
 	NUMBER: (1<<0 | 1<<1),
