@@ -3,11 +3,16 @@ var sys = require('sys'),
   types = require('./definitions/token_types'),
   util  = require('util');
 
-var Token = function (type_, value_, prio_, parameterStack) {
+var Token = function (type_, value_, symbol_, prio_, extraParameters) {
   this.type_ = type_;
+  this.symbol_=symbol_;
   this.value_ = value_;
   this.prio_ = prio_;
-  this.parameterStack = parameterStack;
+
+  //copiar todos os atributos do objecto extraParameters
+  for (var key in extraParameters) {
+      this[key] = extraParameters[key];
+  }
 };
 
 Token.prototype.setPrio = function (prio) {
