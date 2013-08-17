@@ -1,6 +1,15 @@
 var tokenTypes=require('./token_types'),
 comp=require('../compatibility/binary_comp').binComp;
 
+var types={
+	1: "INTEGER",
+	2: "REAL",
+	3: "NUMBER",
+	4: "CHARACTER",
+	8: "STRING",
+	16: "BOOLEAN"
+};
+
 module.exports.conversions = {
 	convertToValue: function(token, finalType){
 		if(finalType==tokenTypes.INTEGER){
@@ -34,5 +43,9 @@ module.exports.conversions = {
 
 	checkCompatibility: function(token1, token2, operatorToken){
 		return comp.checkCompatibility(token1.type_, token2.type_, operatorToken.value_);
+	},
+
+	codeToVarType: function(code){
+		return types[code];
 	}
 };
