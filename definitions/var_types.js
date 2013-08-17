@@ -1,7 +1,7 @@
 module.exports ={
-	1: "Inteiro",
-	2: "Real",
-	4: "Char",
-	8: "String",
-	16: "Boolean"
+	1: "INTEGER",
+	2: "REAL",
+	4: "CHARACTER",
+	8: "STRING",
+	16: "BOOLEAN"
 };
