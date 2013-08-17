@@ -18,113 +18,127 @@ module.exports = [
 	},
 	{
 		'id': 3,
-		'symbol': 'NULL',
-		'name': "null",
-		'type': 'value',
-		'value': undefined,
-		'subtype': 'null'
+		'symbol': 'sin',
+		'functionName': 'sin',
+		'name': "sine",
+		'type': 'mathFunction',
+		'params': 1,
+		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 4,
 		'symbol': 'cos',
+		'functionName': 'cos',
 		'name': "cosine",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 5,
 		'symbol': 'tan',
+		'functionName': 'tan',
 		'name': "tangent",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 6,
 		'symbol': 'asin',
+		'functionName': 'asin',
 		'name': "arcsine",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 7,
 		'symbol': 'acos',
+		'functionName': 'acos',
 		'name': "arccosine",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 8,
 		'symbol': 'atan',
+		'functionName': 'atan',
 		'name': "arctangent",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 9,
 		'symbol': 'sqrt',
+		'functionName': 'sqrt',
 		'name': "square root",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 10,
 		'symbol': 'log',
+		'functionName': 'log',
 		'name': "logarithm",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 11,
 		'symbol': 'abs',
+		'functionName': 'abs',
 		'name': "absolute value",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 12,
 		'symbol': 'ceil',
+		'functionName': 'ceil',
 		'name': "round up",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 13,
 		'symbol': 'floor',
+		'functionName': 'floor',
 		'name': "round down",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 14,
 		'symbol': 'round',
+		'functionName': 'round',
 		'name': "round",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 15,
 		'symbol': 'exp',
+		'functionName': 'exp',
 		'name': 'exponential',
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 1,
 		'paramTypes': [tokenTypes.NUMBER]
 	},
 	{
 		'id': 16,
 		'symbol': 'pyt',
+		'functionName': 'pyt',
 		'name': "pythagorean theorem",
-		'type': 'function',
+		'type': 'mathFunction',
 		'params': 2,
 		'paramTypes': [tokenTypes.NUMBER,tokenTypes.NUMBER]
 	},
@@ -141,13 +155,5 @@ module.exports = [
 		'name': "Pi",
 		'type': 'value',
 		'value': Math.PI
-	},
-	{
-		'id': 19,
-		'symbol': 'sin',
-		'name': "sine",
-		'type': 'function',
-		'params': 1,
-		'paramTypes': [tokenTypes.NUMBER]
 	}
 ];
