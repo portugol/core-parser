@@ -99,7 +99,7 @@ function printStack(stack){
 			default:
 				return "Invalid Token";
 		}
-		str=i+": {"+item.value_+"}\t"+"type: "+type+"\t"+"prio: "+item.prio_+" status: "+status;
+		str=i+": val: "+item.value_+"\t"+"symbol: "+item.symbol_+"\t"+"type: "+type+"\t"+"prio: "+item.prio_+" status: "+status;
 		status="NOT OK";
 		console.log(str);
 	}
