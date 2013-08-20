@@ -245,7 +245,7 @@ Evaluator.prototype.evaluate = function(node,level){
 		//procurar no dicionário a tradução para a língua utilizada
 		for(var i=0; i<=dictionary.length; i++){
 			if(dictionary[i].value==this.resultToken.value_){
-				result=dictionary[i].symbol;
+				result=dictionary[i].value;
 				break;
 			}
 		}
