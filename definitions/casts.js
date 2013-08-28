@@ -1,6 +1,6 @@
 var tokenTypes= require('./token_types'),
 operandCodes=require('../compatibility/vartype_codes'),
-conversions=require('./conversions').conversions,
+conversions=require('./conversions'),
 CastError = require('../errors/cast_error');
 
 
@@ -28,7 +28,7 @@ var castList = [
 ];
 
 
-module.exports.casts = {
+var self = {
 	checkCastCompatibility: function(oldType, newType){
 		//é do mesmo tipo
 		if(newType===oldType){
@@ -61,3 +61,5 @@ module.exports.casts = {
 		}
 	}
 };
+
+module.exports=self;

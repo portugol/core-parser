@@ -1,5 +1,6 @@
 var tokenTypes=require('./token_types'),
-comp=require('../compatibility/binary_comp').binComp;
+comp=require('../compatibility/binary_comp'),
+limits=require('./limits');
 
 var types={
 	1: "INTEGER",
@@ -10,31 +11,34 @@ var types={
 	16: "BOOLEAN"
 };
 
-module.exports.conversions = {
-	convertToValue: function(token, finalType){
+var self = {
+	convertToValue: function(value, type, finalType){
 		if(finalType==tokenTypes.INTEGER){
-			return this.getIntValue(token);
+			return this.getIntValue(value,type);
 		}
 		if(finalType==tokenTypes.REAL){
-			return this.getRealValue(token);
+			return this.getRealValue(value,type);
 		}
 		if(finalType==tokenTypes.CHAR){
-			return this.getIntValue(token);
+			return this.getIntValue(value,type);
 		}
 		if(finalType==tokenTypes.STRING){
-			return token.value_;
+			return value;
 		}
 	},
 
-	getIntValue: function(token){
-		if(token.type_==tokenTypes.CHAR){
-			return token.value_.charCodeAt(0);
+	getIntValue: function(value,type){
+		if(limits.isScientificNotation(value)){
+			value=self.scientificToString(value);
 		}
-		return parseInt(token.value_,10);
+		if(type==tokenTypes.CHAR){
+			return value.charCodeAt(0);
+		}
+		return parseInt(value,10);
 	},
 
-	getRealValue: function(token){
-		return parseFloat(token.value_);
+	getRealValue: function(value){
+		return parseFloat(value);
 	},
 
 	getFinalType: function(token1, token2){
@@ -47,5 +51,31 @@ module.exports.conversions = {
 
 	codeToVarType: function(code){
 		return types[code];
+	},
+
+	scientificToString: function(scientificNumber){
+	    //adaptado de
+	    //http://stackoverflow.com/questions/16139452/how-to-convert-big-negative-scientific-notation-number-into-decimal-notation-str
+	    var data= String(scientificNumber).split(/[eE]/);
+	    if(data.length== 1) return data[0]; 
+
+	    var  z= '', sign= this<0? '-':'',
+	    str= data[0].replace('.', ''),
+	    mag= Number(data[1])+ 1;
+
+	    if(mag<0){
+	        z= sign + '0.';
+	        while(mag++) z += '0';
+	        return z + str.replace(/^\-/,'');
+	    }
+	    mag -= str.length;  
+	    while(mag--) z += '0';
+	    return str + z;
+	},
+	
+	scientifcAutoSize: function(number){
+		return parseFloat(number).toString();
 	}
 };
+
+module.exports=self;

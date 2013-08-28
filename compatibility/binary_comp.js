@@ -21,7 +21,6 @@ var lists = {
 		"&":  tokenTypes.INTEGER,
 		"^":  tokenTypes.INTEGER
 	},
-
 	realList: {
 		"+" : (tokenTypes.NUMBER | tokenTypes.STRING),
 		"-":  tokenTypes.NUMBER,
@@ -35,7 +34,6 @@ var lists = {
 		">=": tokenTypes.NUMBER,
 		">":  tokenTypes.NUMBER
 	},
-
 	charList: {
 		"+" : (tokenTypes.INTEGER | tokenTypes.CHAR| tokenTypes.STRING),
 		"-":  (tokenTypes.INTEGER | tokenTypes.CHAR),
@@ -46,7 +44,6 @@ var lists = {
 		">=": (tokenTypes.INTEGER | tokenTypes.CHAR),
 		">":  (tokenTypes.INTEGER | tokenTypes.CHAR)
 	},
-
 	stringList: {
 		"+" : (tokenTypes.STRING | tokenTypes.CHAR | tokenTypes.NUMBER),
 		"==": tokenTypes.STRING,
@@ -56,7 +53,6 @@ var lists = {
 		">=": tokenTypes.STRING,
 		">":  tokenTypes.STRING
 	},
-
 	booleanList: {
 		"==": tokenTypes.BOOLEAN,
 		"!=": tokenTypes.BOOLEAN,
@@ -65,10 +61,7 @@ var lists = {
 	}
 };
 
-
-
-module.exports.binComp = {
-
+var self = {
 	varResult: [
 	{
 		'type': tokenTypes.INTEGER,
@@ -165,7 +158,6 @@ module.exports.binComp = {
 	checkCompatibility: function(tokenType1, tokenType2, operatorSymbol){
 		var list;
 		var operandCode;
-
 		//escolhe a lista de compatibilidade adequada ao tokenType1
 		switch (tokenType1) {
 			case tokenTypes.INTEGER:
@@ -186,7 +178,6 @@ module.exports.binComp = {
 			default:
 			throw Error("tipo invalido");
 		}
-
 		//escolhe a código de operando adequado ao tokenType2
 		switch (tokenType2) {
 			case tokenTypes.INTEGER:
@@ -207,7 +198,6 @@ module.exports.binComp = {
 			default:
 			throw Error("tipo invalid");
 		}
-
 		//verificar se o tokenType1 suporta a operação cujo símbolo é igual ao operatorSymbol
 		if(operatorSymbol in list){
 			//verificar se a operação é suportada entre o tokenType1 e o tokenType2
@@ -221,7 +211,6 @@ module.exports.binComp = {
 	getFinalType: function(varType1, varType2){
 		var list;
 		var finalType;
-
 		//percorre os vários tipos de variável do array varResult
 		for(var i=0; i<this.varResult.length; i++){
 			//verifica se encontrou o tipo correcto
@@ -246,3 +235,5 @@ module.exports.binComp = {
 		return finalType;
 	}
 };
+
+module.exports=self;

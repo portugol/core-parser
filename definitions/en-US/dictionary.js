@@ -19,6 +19,7 @@ module.exports = [
 	{
 		'id': 3,
 		'symbol': 'sin',
+		'value': 'sin',
 		'functionName': 'sin',
 		'name': "sine",
 		'type': 'mathFunction',
@@ -28,6 +29,7 @@ module.exports = [
 	{
 		'id': 4,
 		'symbol': 'cos',
+		'value': 'cos',
 		'functionName': 'cos',
 		'name': "cosine",
 		'type': 'mathFunction',
@@ -37,6 +39,7 @@ module.exports = [
 	{
 		'id': 5,
 		'symbol': 'tan',
+		'value': 'tan',
 		'functionName': 'tan',
 		'name': "tangent",
 		'type': 'mathFunction',
@@ -46,6 +49,7 @@ module.exports = [
 	{
 		'id': 6,
 		'symbol': 'asin',
+		'value': 'asin',
 		'functionName': 'asin',
 		'name': "arcsine",
 		'type': 'mathFunction',
@@ -55,6 +59,7 @@ module.exports = [
 	{
 		'id': 7,
 		'symbol': 'acos',
+		'value': 'acos',
 		'functionName': 'acos',
 		'name': "arccosine",
 		'type': 'mathFunction',
@@ -64,6 +69,7 @@ module.exports = [
 	{
 		'id': 8,
 		'symbol': 'atan',
+		'value': 'atan',
 		'functionName': 'atan',
 		'name': "arctangent",
 		'type': 'mathFunction',
@@ -73,6 +79,7 @@ module.exports = [
 	{
 		'id': 9,
 		'symbol': 'sqrt',
+		'value': 'sqrt',
 		'functionName': 'sqrt',
 		'name': "square root",
 		'type': 'mathFunction',
@@ -82,6 +89,7 @@ module.exports = [
 	{
 		'id': 10,
 		'symbol': 'log',
+		'value': 'log',
 		'functionName': 'log',
 		'name': "logarithm",
 		'type': 'mathFunction',
@@ -91,6 +99,7 @@ module.exports = [
 	{
 		'id': 11,
 		'symbol': 'abs',
+		'value': 'abs',
 		'functionName': 'abs',
 		'name': "absolute value",
 		'type': 'mathFunction',
@@ -100,6 +109,7 @@ module.exports = [
 	{
 		'id': 12,
 		'symbol': 'ceil',
+		'value': 'ceil',
 		'functionName': 'ceil',
 		'name': "round up",
 		'type': 'mathFunction',
@@ -109,6 +119,7 @@ module.exports = [
 	{
 		'id': 13,
 		'symbol': 'floor',
+		'value': 'floor',
 		'functionName': 'floor',
 		'name': "round down",
 		'type': 'mathFunction',
@@ -118,6 +129,7 @@ module.exports = [
 	{
 		'id': 14,
 		'symbol': 'round',
+		'value': 'round',
 		'functionName': 'round',
 		'name': "round",
 		'type': 'mathFunction',
@@ -127,6 +139,7 @@ module.exports = [
 	{
 		'id': 15,
 		'symbol': 'exp',
+		'value': 'exp',
 		'functionName': 'exp',
 		'name': 'exponential',
 		'type': 'mathFunction',
@@ -136,6 +149,7 @@ module.exports = [
 	{
 		'id': 16,
 		'symbol': 'pyt',
+		'value': 'pyt',
 		'functionName': 'pyt',
 		'name': "pythagorean theorem",
 		'type': 'mathFunction',

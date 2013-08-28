@@ -1,7 +1,7 @@
 var tokenTypes=require('./token_types'),
 Token=require('../token'),
-limits=require('./limits').limits,
-conversions=require('./conversions').conversions;
+limits=require('./limits'),
+conversions=require('./conversions');
 
 var ops={
 	"+": add,
@@ -19,7 +19,7 @@ var ops={
 
 var finalType={};
 
-module.exports.binaryOps ={
+var self ={
 	calculate: function(token1, token2, operatorToken){
 		if(!(conversions.checkCompatibility(token1, token2, operatorToken))){
 			throw "Operação entre tipos incompatíveis";
@@ -31,26 +31,26 @@ module.exports.binaryOps ={
 			throw "Operador não definido";
 		}
 		//converte símbolos para valores
-		var value1 =conversions.convertToValue(token1,finalType);
-		var value2 =conversions.convertToValue(token2,finalType);
+		var value1 =conversions.convertToValue(token1.value_,token1.type_,finalType);
+		var value2 =conversions.convertToValue(token2.value_,token2.type_,finalType);
 
 		//guarda o resultado da operação
 		var result =func(value1,value2);
 		if(finalType==tokenTypes.INTEGER){
-			result=parseInt(result,10);
-			return new Token(tokenTypes.INTEGER, result);
+			result=conversions.getIntValue(result,finalType);
+			return new Token(tokenTypes.INTEGER, result, result);
 		}
 		if(finalType==tokenTypes.REAL){
-			result=parseFloat(result.toPrecision(12));
-			return new Token(tokenTypes.REAL, result);
+			result=conversions.getRealValue(result.toPrecision(12));
+			return new Token(tokenTypes.REAL, result, result);
 		}
 		if(finalType==tokenTypes.CHAR){
 			result=String.fromCharCode(result);
-			return new Token(tokenTypes.CHAR, result);
+			return new Token(tokenTypes.CHAR, result, result);
 		}
 		if(finalType==tokenTypes.STRING){
 			result=result.toString();
-			return new Token(tokenTypes.STRING, result);
+			return new Token(tokenTypes.STRING, result, result);
 		}
 	}
 };
@@ -107,11 +107,18 @@ function isDif(value1,value2){
 }
 
 function shiftLeft(value1,value2){
-	return (value1<<value2);
+	//return (value1<<value2);
+	//desta forma possibilita obter valores maiores e melhor desempenho
+	return value1*(Math.pow(2,value2));
 }
 
 function shiftRight(value1,value2){
-	return (value1>>value2);
+	//return (value1>>value2);
+	//desta forma possibilita obter valores maiores e melhor desempenho
+	if(value2<0){
+		return value1*(Math.pow(2,value2));
+	}
+	return value1/(Math.pow(2,value2));
 }
 
 function logicNot(value){
@@ -137,3 +144,5 @@ function bitwiseAnd(value1,value2){
 function bitwiseXor(value1,value2){
 	return (value1 ^ value2);
 }
+
+module.exports = self;

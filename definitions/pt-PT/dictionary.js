@@ -19,6 +19,7 @@ module.exports = [
 	{
 		'id': 3,
 		'symbol': 'sen',
+		'value': 'sin',
 		'functionName': 'sin',
 		'name': "seno",
 		'type': 'mathFunction',
@@ -28,6 +29,7 @@ module.exports = [
 	{
 		'id': 4,
 		'symbol': 'cos',
+		'value': 'cos',
 		'functionName': 'cos',
 		'name': "co-seno",
 		'type': 'mathFunction',
@@ -37,6 +39,7 @@ module.exports = [
 	{
 		'id': 5,
 		'symbol': 'tan',
+		'value': 'tan',
 		'functionName': 'tan',
 		'name': "tangente",
 		'type': 'mathFunction',
@@ -45,7 +48,8 @@ module.exports = [
 	},
 	{
 		'id': 6,
-		'symbol': 'arcsin',
+		'symbol': 'arcsen',
+		'value': 'arcsin',
 		'functionName': 'asin',
 		'name': "arco-seno",
 		'type': 'mathFunction',
@@ -55,6 +59,7 @@ module.exports = [
 	{
 		'id': 7,
 		'symbol': 'arccos',
+		'value': 'arccos',
 		'functionName': 'acos',
 		'name': "arco-coseno",
 		'type': 'mathFunction',
@@ -64,6 +69,7 @@ module.exports = [
 	{
 		'id': 8,
 		'symbol': 'arctan',
+		'value': 'arctan',
 		'functionName': 'atan',
 		'name': "arco-tangente",
 		'type': 'mathFunction',
@@ -73,6 +79,7 @@ module.exports = [
 	{
 		'id': 9,
 		'symbol': 'raiz',
+		'value': 'sqrt',
 		'functionName': 'sqrt',
 		'name': "raíz quadrada",
 		'type': 'mathFunction',
@@ -82,6 +89,7 @@ module.exports = [
 	{
 		'id': 10,
 		'symbol': 'log',
+		'value': 'log',
 		'functionName': 'log',
 		'name': "logaritmo",
 		'type': 'mathFunction',
@@ -91,6 +99,7 @@ module.exports = [
 	{
 		'id': 11,
 		'symbol': 'abs',
+		'value': 'abs',
 		'functionName': 'abs',
 		'name': "módulo",
 		'type': 'mathFunction',
@@ -100,6 +109,7 @@ module.exports = [
 	{
 		'id': 12,
 		'symbol': 'arredCima',
+		'value': 'ceil',
 		'functionName': 'ceil',
 		'name': "arredondar para cima",
 		'type': 'mathFunction',
@@ -109,6 +119,7 @@ module.exports = [
 	{
 		'id': 13,
 		'symbol': 'arredBaixo',
+		'value': 'floor',
 		'functionName': 'floor',
 		'name': "arredondar para baixo",
 		'type': 'mathFunction',
@@ -118,6 +129,7 @@ module.exports = [
 	{
 		'id': 14,
 		'symbol': 'arred',
+		'value': 'round',
 		'functionName': 'round',
 		'name': "arredondar",
 		'type': 'mathFunction',
@@ -127,6 +139,7 @@ module.exports = [
 	{
 		'id': 15,
 		'symbol': 'exp',
+		'value': 'exp',
 		'functionName': 'exp',
 		'name': 'exponential',
 		'type': 'mathFunction',
@@ -136,6 +149,7 @@ module.exports = [
 	{
 		'id': 16,
 		'symbol': 'pitagoras',
+		'value': 'pyt',
 		'functionName': 'pyt',
 		'name': "teorema de Pitágoras",
 		'type': 'mathFunction',
