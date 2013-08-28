@@ -24,22 +24,24 @@ var self ={
 		var value1 =token1.value_;
 		//guarda o resultado da operação
 		var result =func(value1);
-
+		var symbol;
 		if(finalType==tokenTypes.INTEGER){
 			result=parseInt(result,10);
-			return new Token(tokenTypes.INTEGER, result);
+			symbol=result.toString();
+			return new Token(tokenTypes.INTEGER, result, symbol);
 		}
 		if(finalType==tokenTypes.REAL){
 			result=parseFloat(result);
-			return new Token(tokenTypes.REAL, result);
+			symbol=result.toString();
+			return new Token(tokenTypes.REAL, result, symbol);
 		}
 		if(finalType==tokenTypes.CHAR){
 			result=String.fromCharCode(result);
-			return new Token(tokenTypes.CHAR, result);
+			return new Token(tokenTypes.CHAR, result, result);
 		}
 		if(finalType==tokenTypes.STRING){
 			result =value1.toString();
-			return new Token(tokenTypes.STRING, result);
+			return new Token(tokenTypes.STRING, result, result);
 		}
 	}
 };

@@ -311,7 +311,7 @@ Evaluator.prototype.checkMemoryVars = function(stack,mem){
 			var v = mem.getVar(stack[i].value_);
 			//se a variável existe em memória substitui pelo seu valor.
 			if(v!==undefined){
-				stack[i]=new Token(v.type_,v.value_);
+				stack[i]=new Token(v.type_,v.value_,v.symbol_);
 			}
 			else{
 				var parameters=[stack[i].value_];

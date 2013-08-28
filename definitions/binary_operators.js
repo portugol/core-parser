@@ -36,13 +36,16 @@ var self ={
 
 		//guarda o resultado da operação
 		var result =func(value1,value2);
+		var symbol;
 		if(finalType==tokenTypes.INTEGER){
 			result=conversions.getIntValue(result,finalType);
-			return new Token(tokenTypes.INTEGER, result, result);
+			symbol=result.toString();
+			return new Token(tokenTypes.INTEGER, result, symbol);
 		}
 		if(finalType==tokenTypes.REAL){
 			result=conversions.getRealValue(result.toPrecision(12));
-			return new Token(tokenTypes.REAL, result, result);
+			symbol=result.toString();
+			return new Token(tokenTypes.REAL, result, symbol);
 		}
 		if(finalType==tokenTypes.CHAR){
 			result=String.fromCharCode(result);

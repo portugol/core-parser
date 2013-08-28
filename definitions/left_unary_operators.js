@@ -28,14 +28,16 @@ var self ={
 		var value1 =token1.value_;
 		//guarda o resultado da operação
 		var result =func(value1);
-
+		var symbol;
 		if(finalType==tokenTypes.INTEGER){
 			result=parseInt(result,10);
-			return new Token(tokenTypes.INTEGER, result, result);
+			symbol=result.toString();
+			return new Token(tokenTypes.INTEGER, result, symbol);
 		}
 		if(finalType==tokenTypes.REAL){
 			result=parseFloat(result.toPrecision(12));
-			return new Token(tokenTypes.REAL, result, result);
+			symbol=result.toString();
+			return new Token(tokenTypes.REAL, result, symbol);
 		}
 		if(finalType==tokenTypes.CHAR){
 			result=String.fromCharCode(result);
@@ -46,8 +48,8 @@ var self ={
 			return new Token(tokenTypes.STRING, result, result);
 		}
 		if(finalType==tokenTypes.BOOLEAN){
-			var symbol=dictionaryFuncs.getSymbolByValue(dictionary,result);
-			return new Token(tokenTypes.BOOLEAN, result, result);
+			symbol=dictionaryFuncs.getSymbolByValue(dictionary,result);
+			return new Token(tokenTypes.BOOLEAN, result, symbol);
 		}
 	}
 };
