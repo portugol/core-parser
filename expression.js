@@ -165,7 +165,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					//se o resultado for um sinal negativo cria o token
 					if(previous=="-"){
 						this.tokenValue=previous;
-						this.tokenSymbol=this.tokenValue;
+						this.tokenSymbol=this.tokenValue.toString(); 
 						this.tokenprio=prio.UNARY;
 						this.addOperator(tokenTypes.UNARY_LEFT_OP);
 					}
@@ -219,7 +219,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					var aux = this.postfixStack.pop();
 					this.tokenprio=prio.VALUE;
 					this.tokenValue=aux.value_;
-					this.tokenSymbol=this.tokenValue;
+					this.tokenSymbol=this.tokenValue.toString(); 
 					this.addOperator(tokenTypes.FUNC);
 				}
 				//****************************************************************
@@ -289,7 +289,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				}
 			}
 			this.tokenValue=")";
-			this.tokenSymbol=this.tokenValue;
+			this.tokenSymbol=this.tokenValue.toString(); 
 			this.tokenprio=prio.PARENT;
 			this.addOperator(tokenTypes.PARENT);
 		}
@@ -298,7 +298,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 			//verifica se é factorial
 				if((expected & FACT) !== 0){
 					this.tokenValue="!";
-					this.tokenSymbol=this.tokenValue;
+					this.tokenSymbol=this.tokenValue.toString(); 
 					this.tokenprio=prio.UNARY;
 					this.addOperator(tokenTypes.UNARY_RIGHT_OP);
 					expected=(ARITHMETICOP | RPAREN);
@@ -518,7 +518,7 @@ Expression.prototype.isAssign = function(){
 	if(code1=="=" && code2!="="){
 		this.pos++;
 		this.tokenValue="=";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString(); 
 		this.tokenprio=prio.ASSIGN;
 		return true;
 	}
@@ -720,7 +720,7 @@ Expression.prototype.isNot = function(){
 	if(code=="!" && code2!="="){
 		this.pos++;
 		this.tokenValue="!";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString(); 
 		this.tokenprio=prio.UNARY;
 		return true;
 	}
@@ -733,7 +733,7 @@ Expression.prototype.isBitwiseNot = function(){
 	if(code=="~"){
 		this.pos++;
 		this.tokenValue="~";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString(); 
 		this.tokenprio=prio.UNARY;
 		return true;
 	}
@@ -743,13 +743,13 @@ Expression.prototype.isBitwiseNot = function(){
 Expression.prototype.isSignal = function(){
 	if(this.expr.charAt(this.pos-1)=="-"){
 		this.tokenValue="-";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString(); 
 		this.tokenprio=prio.UNARY;
 		return true;
 	}
 	else if(this.expr.charAt(this.pos-1)=="+"){
 		this.tokenValue="+";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString(); 
 		this.tokenprio=prio.UNARY;
 		return true;
 	}
@@ -762,7 +762,7 @@ Expression.prototype.isComma = function () {
 		this.pos++;
 		this.tokenprio = prio.COMMA;
 		this.tokenValue = ",";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString(); 
 		return true;
 	}
 	return false;
@@ -863,7 +863,7 @@ Expression.prototype.isArithmeticOp = function(){
 	else{
 		return false;
 	}
-	this.tokenSymbol=this.tokenValue;
+	this.tokenSymbol=this.tokenValue.toString();  
 	this.pos++;
 	return true;
 };
@@ -889,7 +889,7 @@ Expression.prototype.isLogicOp = function(){
 	else{
 		return false;
 	}
-	this.tokenSymbol=this.tokenValue;
+	this.tokenSymbol=this.tokenValue.toString(); 
 	this.pos++;
 	return true;
 };
@@ -906,7 +906,7 @@ Expression.prototype.isNumber = function(){
 			str += this.expr.charAt(this.pos);
 			this.pos++;
 			this.tokenValue=str;
-			this.tokenSymbol=this.tokenValue;
+			this.tokenSymbol=this.tokenValue.toString(); 
 			this.tokentype=tokenTypes.INTEGER;
 			r = true;
 		}
@@ -917,7 +917,7 @@ Expression.prototype.isNumber = function(){
 			this.tokenValue=str;
 			str += this.isDecimalPart();
 			this.tokenValue=str;
-			this.tokenSymbol=this.tokenValue;
+			this.tokenSymbol=this.tokenValue.toString(); 
 			this.tokentype=tokenTypes.REAL;
 		}
 		else if(code=='e' || code=='E'){
@@ -1015,7 +1015,7 @@ Expression.prototype.getText = function(){
 	this.pos+=str.length;
 	this.tmpstr=str;
 	this.tokenValue=str;
-	this.tokenSymbol=this.tokenValue;
+	this.tokenSymbol=this.tokenValue.toString(); 
 	return str;
 };
 
@@ -1039,7 +1039,7 @@ Expression.prototype.isString = function(){
 			else {
 				this.pos++;
 				this.tokenValue = this.unescape(str, startpos);
-				this.tokenSymbol=this.tokenValue;
+				this.tokenSymbol=this.tokenValue.toString(); 
 				this.tokenprio=prio.VALUE;
 				return true;
 			}
@@ -1079,7 +1079,7 @@ Expression.prototype.isChar = function(){
 					this.throwError("CHAR_INVALID_SIZE",startpos+1,parameters);
 				}
 				this.tokenValue=str;
-				this.tokenSymbol=this.tokenValue;
+				this.tokenSymbol=this.tokenValue.toString(); 
 				this.tokenprio=prio.VALUE;
 				return true;
 			}
@@ -1099,7 +1099,7 @@ Expression.prototype.isLeftPar = function(){
 		this.pos++;
 		this.tokenprio=1000; //para quando aparecer um sinal menos prioritario nao remover o parentesis
 		this.tokenValue="(";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString(); 
 		return true;
 	}
 	return false;
@@ -1110,7 +1110,7 @@ Expression.prototype.isRightPar = function(){
 		this.pos++;
 		this.tokenprio=1000;
 		this.tokenValue=")";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString(); 
 		return true;
 	}
 	return false;
@@ -1118,7 +1118,38 @@ Expression.prototype.isRightPar = function(){
 
 Expression.prototype.isWhite = function(){
 	if(this.expr.charAt(this.pos)==" "){
+		var firstSpace=this.pos;
+		var lastSpace=firstSpace;
 		this.pos++;
+		//calcular último espaço de uma sequência
+		for(var i=this.pos; i<this.expr.length; i++){
+			if(this.expr.charAt(this.pos)!=" "){
+				break;
+			}
+			this.pos++;
+		}
+		lastSpace=this.pos-1;
+
+		//se a sequência de espaços está no início da expressão, são todos removidos
+		if(firstSpace===0){
+			var right=this.expr.substring(lastSpace+1,this.expr.length);
+			this.expr=right;
+			this.pos=0;
+		}
+		//se a sequência de es;paços está no final da expressão, são todos removidos
+		else if(this.pos==this.expr.length){
+			var left=this.expr.substring(0,firstSpace);
+			this.expr=left;
+			this.pos=firstSpace;
+		}
+		//se estiver no meio converte a sequência de espaços para apenas um espaço
+		else{
+			//remover espaços da expressão e actualizar posição actual
+			var left=this.expr.substring(0,firstSpace);
+			var right=this.expr.substring(lastSpace,this.expr.length);
+			this.expr=left+right;
+			this.pos=firstSpace+1;
+		}
 		return true;
 	}
 	return false;
