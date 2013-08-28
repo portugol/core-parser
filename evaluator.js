@@ -210,7 +210,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 					//
 					//conclusao: neste caso os atributos 'value' e 'symbol' da variável são iguais
 					var value=v.setValue(casts.castToType(this.token2,v.getType()));
-					v.setSymbol(value);
+					v.setSymbol(value.toString()); 
 					graph.memoryChanged=true;
 					return value;
 				}
@@ -249,7 +249,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 			else{
 				try{
 					var value=v.setValue(casts.castToType(this.resultToken,v.getType()));
-					v.setSymbol(value);
+					v.setSymbol(value.toString()); 
 					return value;
 				}
 				catch(err){
