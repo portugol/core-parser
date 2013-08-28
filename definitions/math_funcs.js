@@ -1,44 +1,46 @@
 var tokenTypes=require('./token_types'),
-binComp=require('../compatibility/binary_comp').binComp,
-comp=require('../compatibility/unary_left_comp').unaryLeftComp,
+binComp=require('../compatibility/binary_comp'),
+comp=require('../compatibility/unary_left_comp'),
 Token=require('../token'),
-dictionary=require('./dictionary'),
-limits=require('./limits').limits,
+limits=require('./limits'),
 EvaluatorError=require('../errors/evaluator_error'),
-conversions=require('./conversions').conversions;
+conversions=require('./conversions'),
+dictionaryFuncs=require('./dictionary_funcs');
 
 var finalType={};
-module.exports.mathFuncs ={
-	calculate: function(values, operatorToken){
+var self={
+	calculate: function(values, operatorToken, dictionary){
 		var func={};
 		var numParams=values.length;
-		//guarda a função javascript que faz a operação (de acordo com o símbolo operatório)
-		for(var i=0; i<dictionary.length; i++){
-			if(dictionary[i].symbol==operatorToken.value_){
-				func=eval(operatorToken.value_); //guarda a função JS de acordo com o value do token
-				if(numParams==dictionary[i].params){
-					for(var j=0; j<numParams; j++){
-						var parameter=values[j];
-						//se o tipo de parâmetro recebido não é compatível com o que é esperado
-						if((parameter.type_ & dictionary[i].paramTypes[j])===0){
-							//throw "O tipo do parâmetro "+j+" é inválido";
-							//"O parâmetro %parametro (%tipo) é inválido. É esperado um do tipo %tipo"
-							
-							var paramNumber=j+1; //avançar 1 posição porque começa em 0
-							var errorParameters=[paramNumber,parameter.symbol_,"VarTypes."+conversions.codeToVarType(parameter.type_), operatorToken.funcName, "VarTypes."+conversions.codeToVarType(dictionary[i].paramTypes[j])];
-							throw new EvaluatorError("INVALID_PARAMETER",errorParameters);
-						}
-					}
+		try{
+			var obj=dictionaryFuncs.getObjectByValue(dictionary,operatorToken.value_);
+		}
+		catch(e){
+			throw new EvaluatorError("UNEXPECTED_ERROR");
+		}
+		var func=eval(obj.functionName);
+		var funcParams=obj.params;
+		var paramTypes=obj.paramTypes;
+		if(numParams==funcParams){
+			for(var j=0; j<numParams; j++){
+				var parameter=values[j];
+				//se o tipo de parâmetro recebido não é compatível com o que é esperado
+				if((parameter.type_ & paramTypes[j])===0){
+					//throw "O tipo do parâmetro "+j+" é inválido";
+					//"O parâmetro %parametro (%tipo) é inválido. É esperado um do tipo %tipo"
+					var paramNumber=j+1; //avançar 1 posição porque começa em 0
+					var errorParameters=[paramNumber,parameter.symbol_,"VarTypes."+conversions.codeToVarType(parameter.type_), operatorToken.funcName, "VarTypes."+conversions.codeToVarType(obj.paramTypes[j])];
+					throw new EvaluatorError("INVALID_PARAMETER",errorParameters);
 				}
-				else{
-					//throw "Número de parâmetros inválido";
-					//A função deve receber %s parâmetro(s). Introduziu %s parâmetro(s)
-					var errorParameters=[operatorToken.funcName,dictionary[i].params, numParams];
-					throw new EvaluatorError("INVALID_NUMBER_PARAMETERS",errorParameters);
-				}
-				break;
 			}
 		}
+		else{
+			//throw "Número de parâmetros inválido";
+			//A função deve receber %s parâmetro(s). Introduziu %s parâmetro(s)
+			var errorParameters=[operatorToken.funcName,funcParams, numParams];
+			throw new EvaluatorError("INVALID_NUMBER_PARAMETERS",errorParameters);
+		}
+
 		finalType=tokenTypes.REAL;
 		if(func===undefined){
 			throw "Operador não definido";
@@ -65,24 +67,6 @@ module.exports.mathFuncs ={
 		}
 	}
 };
-
-function checkCompatibility(token1, operatorToken){
-	return comp.checkCompatibility(token1.type_, operatorToken.value_);
-}
-
-function getIntValue(token){
-	if(token.type_==tokenTypes.CHAR){
-		return token.value_.charCodeAt(0);
-	}
-	return parseInt(token.value_,10);
-}
-
-function getRealValue(token){
-	if(token.type_==tokenTypes.CHAR){
-		return this.getCharCode(token.value_);
-	}
-	return parseFloat(token.value_);
-}
 
 function sin(values){
 	return Math.sin(values[0].value_);
@@ -137,4 +121,5 @@ function ceil(values){
 	return Math.ceil(values[0].value_);
 }
 
+module.exports=self;
 

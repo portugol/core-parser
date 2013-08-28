@@ -1,16 +1,15 @@
 var tokenTypes=require('./token_types'),
-binComp=require('../compatibility/binary_comp').binComp,
-comp=require('../compatibility/unary_right_comp').unaryRightComp,
+binComp=require('../compatibility/binary_comp'),
+comp=require('../compatibility/unary_right_comp'),
 Token=require('../token'),
-limits=require('./limits').limits;
+limits=require('./limits');
 
 var ops={
 	"!": factorial
 };
 
 var finalType={};
-
-module.exports.rightUnaryOps ={
+var self ={
 	calculate: function(token1, operatorToken){
 		if(!(checkCompatibility(token1, operatorToken))){
 			throw "A operação não pode ser efectuada com dados deste tipo";
@@ -49,20 +48,6 @@ function checkCompatibility(token1, operatorToken){
 	return comp.checkCompatibility(token1.type_, operatorToken.value_);
 }
 
-function getIntValue(token){
-	if(token.type_==tokenTypes.CHAR){
-		return token.value_.charCodeAt(0);
-	}
-	return parseInt(token.value_,10);
-}
-
-function getRealValue(token){
-	if(token.type_==tokenTypes.CHAR){
-		return this.getCharCode(token.value_);
-	}
-	return parseFloat(token.value_);
-}
-
 function factorial(value){
 	if(value<0){
 		//console.log(value);
@@ -75,4 +60,6 @@ function factorial(value){
 		return (value*factorial(value-1));
 	}
 }
+
+module.exports=self;
 

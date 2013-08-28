@@ -1,8 +1,9 @@
 var tokenTypes=require('./token_types'),
-binComp=require('../compatibility/binary_comp').binComp,
-comp=require('../compatibility/unary_left_comp').unaryLeftComp,
+binComp=require('../compatibility/binary_comp'),
+comp=require('../compatibility/unary_left_comp'),
 Token=require('../token'),
-limits=require('./limits').limits;
+limits=require('./limits'),
+dictionaryFuncs=require('./dictionary_funcs');
 
 var ops={
 	"!": logicNot,
@@ -12,8 +13,8 @@ var ops={
 
 var finalType={};
 
-module.exports.leftUnaryOps ={
-	calculate: function(token1, operatorToken){
+var self ={
+	calculate: function(token1, operatorToken, dictionary){
 		if(!(checkCompatibility(token1, operatorToken))){
 			throw "A operação não pode ser efectuada com dados deste tipo";
 		}
@@ -30,42 +31,29 @@ module.exports.leftUnaryOps ={
 
 		if(finalType==tokenTypes.INTEGER){
 			result=parseInt(result,10);
-			return new Token(tokenTypes.INTEGER, result);
+			return new Token(tokenTypes.INTEGER, result, result);
 		}
 		if(finalType==tokenTypes.REAL){
 			result=parseFloat(result.toPrecision(12));
-			return new Token(tokenTypes.REAL, result);
+			return new Token(tokenTypes.REAL, result, result);
 		}
 		if(finalType==tokenTypes.CHAR){
 			result=String.fromCharCode(result);
-			return new Token(tokenTypes.CHAR, result);
+			return new Token(tokenTypes.CHAR, result, result);
 		}
 		if(finalType==tokenTypes.STRING){
 			result =value1.toString();
-			return new Token(tokenTypes.STRING, result);
+			return new Token(tokenTypes.STRING, result, result);
 		}
 		if(finalType==tokenTypes.BOOLEAN){
-			return new Token(tokenTypes.BOOLEAN, result);
+			var symbol=dictionaryFuncs.getSymbolByValue(dictionary,result);
+			return new Token(tokenTypes.BOOLEAN, result, result);
 		}
 	}
 };
 
 function checkCompatibility(token1, operatorToken){
 	return comp.checkCompatibility(token1.type_, operatorToken.value_);
-}
-
-function getIntValue(token){
-	if(token.type_==tokenTypes.CHAR){
-		return token.value_.charCodeAt(0);
-	}
-	return parseInt(token.value_,10);
-}
-
-function getRealValue(token){
-	if(token.type_==tokenTypes.CHAR){
-		return this.getCharCode(token.value_);
-	}
-	return parseFloat(token.value_);
 }
 
 function bitwiseNot(value){
@@ -81,3 +69,4 @@ function logicNot(value){
 	return !(value);
 }
 
+module.exports=self;

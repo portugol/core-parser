@@ -6,7 +6,8 @@ var sys = require('sys'),
 	util = require('util'),
 	Debug = require('./debug/debug'),
 	nodeNames = require('./definitions/node_names'),
-	ExpressionError=require('./errors/expression_error');
+	ExpressionError=require('./errors/expression_error'),
+	conversions=require('./definitions/conversions');
 
 var LPAREN       = 1 << 1;
 var RPAREN       = 1 << 2;
@@ -82,7 +83,12 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 	//SE A EXPRESSAO É NULA (tamanho=0)
 	try{
 		if(expr.length===0){
-			return []; //devolve array vazio
+			if(this.isArgument){
+				return []; //devolve array vazio
+			}
+			else{
+				this.throwError("NO_DATA");
+			}
 		}
 	}
 	catch(e){
@@ -463,6 +469,13 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 	if(this.isArgument){
 		this.removeCommas();
 	}
+	else{
+		//se não for argumento, e a stack pós fixa ficar vazia
+		//não foram introduzidos dados. É lançado erro
+		if(this.postfixStack.length===0){
+			this.throwError("NO_DATA");
+		}
+	}
 
 	if(this.isDebug){
 		console.log("numero de operandos: "+this.numOperands);
@@ -649,7 +662,8 @@ Expression.prototype.addOperand = function(type_){
 	var value;
 	if(type_==tokenTypes.INTEGER){
 		//conversão para inteiro
-		value=parseInt(this.tokenValue,10);
+		//value=parseInt(this.tokenValue,10);
+		value=conversions.getIntValue(this.tokenValue,type_);
 	}
 	else if(type_==tokenTypes.REAL){
 		//conversão para real
@@ -892,6 +906,7 @@ Expression.prototype.isNumber = function(){
 			str += this.expr.charAt(this.pos);
 			this.pos++;
 			this.tokenValue=str;
+			this.tokenSymbol=this.tokenValue;
 			this.tokentype=tokenTypes.INTEGER;
 			r = true;
 		}
@@ -902,20 +917,22 @@ Expression.prototype.isNumber = function(){
 			this.tokenValue=str;
 			str += this.isDecimalPart();
 			this.tokenValue=str;
+			this.tokenSymbol=this.tokenValue;
 			this.tokentype=tokenTypes.REAL;
-		}/*
-		if(code=='e' || code=='E'){
+		}
+		else if(code=='e' || code=='E'){
 			str+=this.expr.charAt(this.pos);
 			this.pos++;
 			str+=this.addScientificNotation();
+			console.log(str);
 			this.tokenValue=str;
-			this.tokentype=tokenTypes.INTEGER;
-		}*/
+			this.tokenSymbol=conversions.scientifcAutoSize(str);
+			break;
+		}
 		else {
 			break; //quebra o ciclo quando o caracter não for um algarismo nem ponto decimal
 		}
 	}
-	this.tokenSymbol=this.tokenValue;
 	this.tokenprio=prio.VALUE;
 	return r;
 };
@@ -948,22 +965,35 @@ Expression.prototype.isDecimalPart = function(){
 };
 
 Expression.prototype.addScientificNotation= function(){
-	var str = "";
+	var signal = "";
+	var exponent="";
 	var ch = this.expr.charAt(this.pos);
-	if(ch=="+" || ch=="-"){
-		str+=ch;
+	if(ch=="+"){
+		this.tokentype=tokenTypes.INTEGER;
+		signal=ch;
+		this.pos++;
+	}
+	else if(ch=="-"){
+		this.tokentype=tokenTypes.REAL; //número decimal
+		signal=ch;
+		this.pos++;
 	}
 	//percorre os caracteres da expressão desde a posição actual ao final
 	while (this.pos < this.expr.length) {
 		ch=this.expr.charAt(this.pos);
 		if(ch >= '0' && ch <= '9'){
-			str+=ch;
+			exponent+=ch;
+			this.pos++;
 		}
 		else{
-			this.throwError("BAD_SCIENTIFIC_NOTATION",this.pos);
+			break;
+			//this.throwError("BAD_SCIENTIFIC_NOTATION",this.pos);
 		}
 	}
-	return str;
+	if(exponent===""){
+		this.throwError("BAD_SCIENTIFIC_NOTATION",this.pos);
+	}
+	return signal+exponent;
 };
 
 Expression.prototype.getText = function(){

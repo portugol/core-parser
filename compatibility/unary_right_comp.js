@@ -5,7 +5,7 @@ var ops={
 	"!": tokenTypes.INTEGER
 };
 
-module.exports.unaryRightComp={
+var self={
 	checkCompatibility: function(tokenType, operatorSymbol){
 		if(operatorSymbol in ops){
 			//se o tipo de dados é compatível com o operador
@@ -16,3 +16,5 @@ module.exports.unaryRightComp={
 		return true;
 	}
 };
+
+module.exports=self;

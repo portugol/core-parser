@@ -7,7 +7,7 @@ var ops={
 	"!": tokenTypes.BOOLEAN
 };
 
-module.exports.unaryLeftComp={
+var self={
 	checkCompatibility: function(tokenType, operatorSymbol){
 		if(operatorSymbol in ops){
 			//se o tipo de dados é compatível com o operador
@@ -18,3 +18,5 @@ module.exports.unaryLeftComp={
 		return true;
 	}
 };
+
+module.exports=self;
