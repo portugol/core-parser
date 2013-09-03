@@ -167,7 +167,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					//se o resultado for um sinal negativo cria o token
 					if(previous=="-"){
 						this.tokenValue=previous;
-						this.tokenSymbol=this.tokenValue.toString(); 
+						this.tokenSymbol=this.tokenValue.toString();
 						this.tokenName="NEGATIVE";
 						this.tokenprio=prio.UNARY;
 						this.addOperator(tokenTypes.UNARY_LEFT_OP);
@@ -229,7 +229,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					var aux = this.postfixStack.pop();
 					this.tokenprio=prio.VALUE;
 					this.tokenValue=aux.value_;
-					this.tokenSymbol=this.tokenValue.toString(); 
+					this.tokenSymbol=this.tokenValue.toString();
 					this.tokenName="FUNC";
 					this.addOperator(tokenTypes.FUNC);
 				}
@@ -956,6 +956,10 @@ Expression.prototype.isNumber = function(){
 			this.tokenName="INTEGER_NUMBER";
 			this.tokentype=tokenTypes.INTEGER;
 			r = true;
+		}
+		//quebrar ciclo caso a primeira verificação não encontre número
+		if(r===false){
+			return r;
 		}
 		//se é ponto decimal
 		else if(code=='.'){
