@@ -18,7 +18,7 @@ var self={
 		catch(e){
 			throw new EvaluatorError("UNEXPECTED_ERROR");
 		}
-		var func=eval(obj.functionName);
+		var func=eval(obj.value);
 		var funcParams=obj.params;
 		var paramTypes=obj.paramTypes;
 		if(numParams==funcParams){
@@ -48,14 +48,29 @@ var self={
 
 		//guarda o resultado da operação
 		var result =func(values);
+
+		//verificar se está fora do domínio
+		if(limits.isNotNumber(result,finalType)){
+			var functionName=dictionaryFuncs.getFunctionNameByValue(dictionary,obj.value);
+			var argument=values.toString();
+			var parameters=[argument, functionName];
+			throw new EvaluatorError("ARGUMENT_OUT_OF_DOMAIN",parameters);
+		}
+		//verificar se o valor é infinito
+		if(limits.isInfinite(result,finalType)){
+			var functionName=dictionaryFuncs.getFunctionNameByValue(dictionary,obj.value);
+			var argument=values.toString();
+			var parameters=[functionName,argument];
+			throw new EvaluatorError("FUNCTION_RETURNS_INFINITY",parameters);
+		}
 		var symbol;
 		if(finalType==tokenTypes.INTEGER){
-			result=parseInt(result,10);
+			result=conversions.getIntValue(result,finalType);
 			symbol=result.toString();
 			return new Token(tokenTypes.INTEGER, result,symbol);
 		}
 		if(finalType==tokenTypes.REAL){
-			result=parseFloat(result.toPrecision(12));
+			result=conversions.getRealValue(result,finalType);
 			symbol=result.toString();
 			return new Token(tokenTypes.REAL, result,symbol);
 		}
@@ -64,8 +79,12 @@ var self={
 			return new Token(tokenTypes.CHAR, result, result);
 		}
 		if(finalType==tokenTypes.STRING){
-			result =value1.toString();
+			result =result.toString();
 			return new Token(tokenTypes.STRING, result, result);
+		}
+		if(finalType==tokenTypes.BOOLEAN){
+			symbol=dictionaryFuncs.getSymbolByValue(dictionary,result);
+			return new Token(tokenTypes.BOOLEAN, result, symbol);
 		}
 	}
 };
@@ -95,7 +114,14 @@ function sqrt(values){
 }
 
 function log(values){
-	return Math.log(values[0].value_)/(value[1].value_ ? Math.log(values[1].value_) : Math.log(10));
+	var base;
+	try{
+		base=values[1].value_;
+	}
+	catch(e){
+		base=undefined;
+	}
+	return Math.log(values[0].value_)/(base ? Math.log(base) : Math.log(10));
 }
 
 function ln(values){
