@@ -17,20 +17,21 @@ var self={
 			throwError("Error searching symbol. Value "+value + " not found");
 		}
 	},
-	getFunctionByValue: function(dictionary, value){
+	getFunctionNameByValue: function(dictionary,value){
 		try{
 			var result;
 			//percorrer dicionário
 			for(var i=0; i<=dictionary.length; i++){
 				if(dictionary[i].value==value){
-					result=dictionary[i].functionName;
+					result=dictionary[i].name;
 					break;
 				}
 			}
 			return result;
 		}
 		catch(err){
-			throwError("Error searching symbol. Value "+value + " not found");
+			throw err;
+			throwError("Error searching function name. Value "+value + " not found");
 		}
 	},
 	getObjectByValue: function(dictionary, value){
