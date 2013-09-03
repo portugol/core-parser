@@ -142,6 +142,9 @@ function floor(values){
 function round(values){
 	return Math.round(values[0].value_);
 }
+function exp(values){
+	return Math.exp(values[0].value_);
+}
 function pyt(values) {
 	return Math.sqrt(values[0].value_ * values[0].value_+ values[1].value_ * values[1].value_);
 }
