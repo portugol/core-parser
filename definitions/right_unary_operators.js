@@ -4,7 +4,8 @@ comp=require('../compatibility/unary_right_comp'),
 Token=require('../token'),
 limits=require('./limits'),
 conversions=require('./conversions'),
-EvaluatorError=require('../errors/evaluator_error');
+EvaluatorError=require('../errors/evaluator_error'),
+dictionaryFuncs=require('./dictionary_funcs');
 
 var ops={
 	"!": factorial
@@ -12,7 +13,7 @@ var ops={
 
 var finalType={};
 var self ={
-	calculate: function(token1, operatorToken){
+	calculate: function(token1, operatorToken, dictionary){
 		if(!(checkCompatibility(token1, operatorToken))){
 			var parameters=[operatorToken.symbol_,"TokenNames."+operatorToken.name_,"VarTypes."+conversions.codeToVarType(token1.type_)];
 			throw new EvaluatorError("INCOMPATIBLE_UNARY_OPERATION",parameters);
@@ -39,12 +40,12 @@ var self ={
 
 		var symbol;
 		if(finalType==tokenTypes.INTEGER){
-			result=parseInt(result,10);
+			result=conversions.getIntValue(result,finalType);
 			symbol=result.toString();
 			return new Token(tokenTypes.INTEGER, result, symbol);
 		}
 		if(finalType==tokenTypes.REAL){
-			result=parseFloat(result);
+			result=conversions.getRealValue(result,finalType);
 			symbol=result.toString();
 			return new Token(tokenTypes.REAL, result, symbol);
 		}
@@ -55,6 +56,10 @@ var self ={
 		if(finalType==tokenTypes.STRING){
 			result =value1.toString();
 			return new Token(tokenTypes.STRING, result, result);
+		}
+		if(finalType==tokenTypes.BOOLEAN){
+			symbol=dictionaryFuncs.getSymbolByValue(dictionary,result);
+			return new Token(tokenTypes.BOOLEAN, result, symbol);
 		}
 	}
 };
