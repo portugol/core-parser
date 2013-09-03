@@ -3,7 +3,8 @@ prio= require('./priorities'),
 Token=require('../token'),
 limits=require('./limits'),
 conversions=require('./conversions'),
-dictionaryFuncs=require('./dictionary_funcs');
+dictionaryFuncs=require('./dictionary_funcs'),
+EvaluatorError=require('../errors/evaluator_error');
 
 var ops={
 	"==": equals,
@@ -21,7 +22,8 @@ var finalType={};
 var self ={
 	calculate: function(token1, token2, operatorToken, dictionary){
 		if(!(conversions.checkCompatibility(token1, token2, operatorToken))){
-			throw "Operação entre tipos incompatíveis";
+			var parameters=[operatorToken.symbol_,"TokenNames."+operatorToken.name_,"VarTypes."+conversions.codeToVarType(token1.type_),"VarTypes."+conversions.codeToVarType(token2.type_)];
+			throw new EvaluatorError("INCOMPATIBLE_BINARY_OPERATION",parameters);
 		}
 		finalType=conversions.getFinalType(token1,token2);
 
