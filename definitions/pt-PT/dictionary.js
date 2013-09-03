@@ -49,7 +49,7 @@ module.exports = [
 	{
 		'id': 6,
 		'symbol': 'arcsen',
-		'value': 'arcsin',
+		'value': 'asin',
 		'functionName': 'asin',
 		'name': "arco-seno",
 		'type': 'mathFunction',
