@@ -14,7 +14,8 @@ var Expression= require('./expression'),
 	EvaluatorError=require('./errors/evaluator_error'),
 	ExpressionError=require('./errors/expression_error'),
 	conversions=require('./definitions/conversions'),
-	casts = require('./definitions/casts.js');
+	casts = require('./definitions/casts.js'),
+	htmlEscape= require('./tools/html_escape');
 
 
 var Evaluator = function(definition, memory, lng, isArgument){
@@ -105,7 +106,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 				this.resultToken=binOps.calculate(this.token1, this.token2, this.item);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -118,7 +119,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 				this.resultToken=leftUnaryOps.calculate(this.token1, this.item, this.dictionary);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -131,7 +132,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 				this.resultToken=rightUnaryOps.calculate(this.token1, this.item);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -145,7 +146,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 				this.resultToken=binLogicOps.calculate(this.token1, this.token2, this.item, this.dictionary);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -167,6 +168,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 				this.resultToken=mathfuncs.calculate(params,this.item,this.dictionary);
 			}
 			catch(err){
+				console.log(err);
 				throw err;
 			}
 			this.tempstack.push(this.resultToken);
@@ -179,13 +181,14 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 
 			var resultType=this.token2.type_;
 			var resultValue=this.token2.value_;
-			var resultSymbol=this.token2.symbol_;
+			var resultSymbol=this.escapeHtml(this.token2.symbol_);
 
 			//procura a variável pelo nome na memória
 			var v = this.memory.getVar(variableName);
 			//se a variável não existir na memória
 			if(v===undefined){
-				this.memory.addVar(new Var(variableName,resultType,resultValue,resultSymbol,this.level,conversions.codeToVarType(resultType)));
+				var variable=new Var(variableName,resultType,resultValue,resultSymbol,this.level,conversions.codeToVarType(resultType));
+				this.memory.addVar(variable);
 				graph.memoryChanged=true;
 				return resultSymbol;
 			}
@@ -347,6 +350,10 @@ Evaluator.prototype.getFinalType = function(token1, token2){
 
 Evaluator.prototype.getVarTypeName = function(typeValue){
 	return varTypes[typeValue];
+};
+
+Evaluator.prototype.escapeHtml = function(string){
+  return htmlEscape.escapeHtml(string);
 };
 
 Evaluator.prototype.throwError = function(errorCode, parameters){
