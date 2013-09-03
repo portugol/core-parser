@@ -129,7 +129,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 				this.throwError("PARITY_ERROR");
 			}
 			try{
-				this.resultToken=rightUnaryOps.calculate(this.token1, this.item);
+				this.resultToken=rightUnaryOps.calculate(this.token1, this.item, this.dictionary);
 			}
 			catch(err){
 				throw err;
@@ -213,7 +213,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 					//
 					//conclusao: neste caso os atributos 'value' e 'symbol' da variável são iguais
 					var value=v.setValue(casts.castToType(this.token2,v.getType()));
-					v.setSymbol(value.toString()); 
+					v.setSymbol(value.toString());
 					graph.memoryChanged=true;
 					return value;
 				}
@@ -252,7 +252,7 @@ Evaluator.prototype.evaluate = function(node,level,graph){
 			else{
 				try{
 					var value=v.setValue(casts.castToType(this.resultToken,v.getType()));
-					v.setSymbol(value.toString()); 
+					v.setSymbol(value.toString());
 					return value;
 				}
 				catch(err){
