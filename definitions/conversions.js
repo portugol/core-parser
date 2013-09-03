@@ -38,6 +38,9 @@ var self = {
 	},
 
 	getRealValue: function(value){
+		if(limits.isScientificNotation(value)){
+			value=self.scientificToString(value);
+		}
 		return parseFloat(value);
 	},
 
