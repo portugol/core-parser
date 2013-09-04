@@ -303,7 +303,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				}
 			}
 			this.tokenValue=")";
-			this.tokenSymbol=this.tokenValue.toString(); 
+			this.tokenSymbol=this.tokenValue.toString();
 			this.tokenprio=prio.PARENT;
 			this.tokenName="RIGHT_PAR";
 			this.addOperator(tokenTypes.PARENT);
@@ -313,7 +313,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 			//verifica se é factorial
 				if((expected & FACT) !== 0){
 					this.tokenValue="!";
-					this.tokenSymbol=this.tokenValue.toString(); 
+					this.tokenSymbol=this.tokenValue.toString();
 					this.tokenName="FACTORIAL";
 					this.tokenprio=prio.UNARY;
 					this.addOperator(tokenTypes.UNARY_RIGHT_OP);
@@ -541,7 +541,7 @@ Expression.prototype.isAssign = function(){
 	if(code1=="=" && code2!="="){
 		this.pos++;
 		this.tokenValue="=";
-		this.tokenSymbol=this.tokenValue.toString(); 
+		this.tokenSymbol=this.tokenValue.toString();
 		this.tokenType=tokenTypes.ASSIGN;
 		this.tokenName="ASSIGN";
 		this.tokenprio=prio.ASSIGN;
@@ -692,7 +692,7 @@ Expression.prototype.addOperand = function(type_){
 	}
 	else if(type_==tokenTypes.REAL){
 		//conversão para real
-		value=parseFloat(this.tokenValue);
+		value=conversions.getRealValue(this.tokenValue,type_);
 	}
 	else{
 		value=this.tokenValue;
@@ -704,7 +704,7 @@ Expression.prototype.addOperand = function(type_){
 	else{
 		operand = new Token(type_, value, this.tokenSymbol, this.tokenName, this.tokenprio);
 	}
-	this.postfixStack.push(operand);
+	this.postfixStack.push(oper
 };
 
 /*
@@ -745,7 +745,7 @@ Expression.prototype.isNot = function(){
 	if(code=="!" && code2!="="){
 		this.pos++;
 		this.tokenValue="!";
-		this.tokenSymbol=this.tokenValue.toString(); 
+		this.tokenSymbol=this.tokenValue.toString();
 		this.tokenName="NOT";
 		this.tokenprio=prio.UNARY;
 		return true;
@@ -759,7 +759,7 @@ Expression.prototype.isBitwiseNot = function(){
 	if(code=="~"){
 		this.pos++;
 		this.tokenValue="~";
-		this.tokenSymbol=this.tokenValue.toString(); 
+		this.tokenSymbol=this.tokenValue.toString();
 		this.tokenName="BITWISE_NOT";
 		this.tokenprio=prio.UNARY;
 		return true;
@@ -770,14 +770,14 @@ Expression.prototype.isBitwiseNot = function(){
 Expression.prototype.isSignal = function(){
 	if(this.expr.charAt(this.pos-1)=="-"){
 		this.tokenValue="-";
-		this.tokenSymbol=this.tokenValue.toString(); 
+		this.tokenSymbol=this.tokenValue.toString();
 		this.tokenName="NEGATIVE_SIGN";
 		this.tokenprio=prio.UNARY;
 		return true;
 	}
 	else if(this.expr.charAt(this.pos-1)=="+"){
 		this.tokenValue="+";
-		this.tokenSymbol=this.tokenValue.toString(); 
+		this.tokenSymbol=this.tokenValue.toString();
 		this.tokenName="POSITIVE_SIGN";
 		this.tokenprio=prio.UNARY;
 		return true;
@@ -792,7 +792,7 @@ Expression.prototype.isComma = function () {
 		this.tokenprio = prio.COMMA;
 		this.tokenValue = ",";
 		this.tokenName="COMMA";
-		this.tokenSymbol=this.tokenValue.toString(); 
+		this.tokenSymbol=this.tokenValue.toString();
 		return true;
 	}
 	return false;
@@ -879,7 +879,7 @@ Expression.prototype.isArithmeticOp = function(){
 	else{
 		return false;
 	}
-	this.tokenSymbol=this.tokenValue.toString();  
+	this.tokenSymbol=this.tokenValue.toString(); 
 	this.pos++;
 	return true;
 };
@@ -935,61 +935,83 @@ Expression.prototype.isLogicOp = function(){
 		return false;
 	}
 	this.tokenType=tokenTypes.BINARY_LOGIC_OP;
-	this.tokenSymbol=this.tokenValue.toString(); 
+	this.tokenSymbol=this.tokenValue.toString();
 	this.pos++;
 	return true;
 };
 
 Expression.prototype.isNumber = function(){
-	var r = false;
+	var hasIntPart=false;
+	var hasDecimalPart=false;
 	var str = "";
-	var decimalPoint=0;
 
-	while (this.pos < this.expr.length) {
-		var code = this.expr.charAt(this.pos);
-		//se é algarismo
-		if (code >= '0' && code <= '9') {
-			str += this.expr.charAt(this.pos);
-			this.pos++;
-			this.tokenValue=str;
-			this.tokenSymbol=this.tokenValue.toString(); 
-			this.tokenName="INTEGER_NUMBER";
-			this.tokentype=tokenTypes.INTEGER;
-			r = true;
+	//PARTE INTEIRA----------------------
+	var intPart=this.getNumbers();
+	if(intPart!==""){
+		str+=intPart;
+		hasIntPart=true;
+		this.tokenValue=str;
+		this.tokenSymbol=str;
+		this.tokentype=tokenTypes.INTEGER;
+	}
+	else{
+		return false; //se o primeiro digito não é algarismo, então não exite número. retorna false
+	}
+
+	//PARTE DECIMAL----------------------
+	var code=this.expr.charAt(this.pos);
+	if(code=="."){
+		str+=code;
+		this.pos++;
+		code=this.expr.charAt(this.pos);
+		if(code=="."){
+			this.throwError("TOO_MANY_DECIMAL_POINT",this.pos);
 		}
-		//quebrar ciclo caso a primeira verificação não encontre número
-		if(r===false){
-			return r;
-		}
-		//se é ponto decimal
-		else if(code=='.'){
-			str += this.expr.charAt(this.pos);
-			this.pos++;
+		var decimalPart=this.getNumbers(); //guarda números depois do ponto decimal
+		if(decimalPart!==""){
+			str+=decimalPart;
+			hasDecimalPart=true;
 			this.tokenValue=str;
-			str += this.isDecimalPart();
-			this.tokenValue=str;
-			this.tokenSymbol=this.tokenValue.toString(); 
-			this.tokenName="REAL_NUMBER";
+			this.tokenSymbol=str;
 			this.tokentype=tokenTypes.REAL;
 		}
-		else if(code=='e' || code=='E'){
-			str+=this.expr.charAt(this.pos);
-			this.pos++;
-			str+=this.addScientificNotation();
-			console.log(str);
-			this.tokenValue=str;
-			this.tokenSymbol=conversions.scientifcAutoSize(str);
-			this.tokenName="SCIENTIFIC_NUMBER";
-			break;
-		}
-		else {
-			break; //quebra o ciclo quando o caracter não for um algarismo nem ponto decimal
+		else{
+			this.throwError("BAD_DECIMAL_PART",this.pos);
 		}
 	}
+
+	//NOTAÇÃO CIENTÍFICA----------------------
+	var code=this.expr.charAt(this.pos);
+	if(code=="e" || code=="E"){
+		str+=code;
+		this.pos++;
+		code=this.expr.charAt(this.pos);
+		if(code=="+"){
+			str+=code;
+			this.pos++;
+			this.tokentype=tokenTypes.REAL; 
+		}
+		else if(code=="-"){
+			str+=code;
+			this.pos++;
+			this.tokentype=tokenTypes.REAL;
+		}
+		var exponent=this.getNumbers(); //guarda números depois do E
+		if(exponent!==""){
+			str+=exponent;
+			this.tokenValue=str;
+			this.tokenSymbol=conversions.scientifcAutoSize(str);
+		}
+		else{
+			this.throwError("BAD_SCIENTIFIC_NOTATION",this.pos);
+		}
+	}
+
 	this.tokenprio=prio.VALUE;
 	this.tokenName="NUMBER";
-	return r;
+	return true; //se chegar até aqui  é um número
 };
+
 
 Expression.prototype.isDecimalPart = function(){
 	var str = "";
@@ -1018,36 +1040,20 @@ Expression.prototype.isDecimalPart = function(){
 	return str;
 };
 
-Expression.prototype.addScientificNotation= function(){
-	var signal = "";
-	var exponent="";
-	var ch = this.expr.charAt(this.pos);
-	if(ch=="+"){
-		this.tokentype=tokenTypes.INTEGER;
-		signal=ch;
-		this.pos++;
-	}
-	else if(ch=="-"){
-		this.tokentype=tokenTypes.REAL; //número decimal
-		signal=ch;
-		this.pos++;
-	}
-	//percorre os caracteres da expressão desde a posição actual ao final
+Expression.prototype.getNumbers = function(){
+	var str="";
 	while (this.pos < this.expr.length) {
-		ch=this.expr.charAt(this.pos);
-		if(ch >= '0' && ch <= '9'){
-			exponent+=ch;
+		var code = this.expr.charAt(this.pos);
+		//se é algarismo
+		if (code >= '0' && code <= '9') {
+			str += this.expr.charAt(this.pos);
 			this.pos++;
 		}
 		else{
 			break;
-			//this.throwError("BAD_SCIENTIFIC_NOTATION",this.pos);
 		}
 	}
-	if(exponent===""){
-		this.throwError("BAD_SCIENTIFIC_NOTATION",this.pos);
-	}
-	return signal+exponent;
+	return str;
 };
 
 Expression.prototype.getText = function(){
@@ -1069,7 +1075,7 @@ Expression.prototype.getText = function(){
 	this.pos+=str.length;
 	this.tmpstr=str;
 	this.tokenValue=str;
-	this.tokenSymbol=this.tokenValue.toString(); 
+	this.tokenSymbol=this.tokenValue.toString();
 	return str;
 };
 
@@ -1093,7 +1099,7 @@ Expression.prototype.isString = function(){
 			else {
 				this.pos++;
 				this.tokenValue = this.unescape(str, startpos);
-				this.tokenSymbol=this.tokenValue.toString(); 
+				this.tokenSymbol=this.tokenValue.toString();
 				this.tokenprio=prio.VALUE;
 				this.tokenName="STRING";
 				return true;
@@ -1134,7 +1140,7 @@ Expression.prototype.isChar = function(){
 					this.throwError("CHAR_INVALID_SIZE",startpos+1,parameters);
 				}
 				this.tokenValue=str;
-				this.tokenSymbol=this.tokenValue.toString(); 
+				this.tokenSymbol=this.tokenValue.toString();
 				this.tokenprio=prio.VALUE;
 				this.tokenName="CHAR";
 				return true;
@@ -1155,7 +1161,7 @@ Expression.prototype.isLeftPar = function(){
 		this.pos++;
 		this.tokenprio=1000; //para quando aparecer um sinal menos prioritario nao remover o parentesis
 		this.tokenValue="(";
-		this.tokenSymbol=this.tokenValue.toString(); 
+		this.tokenSymbol=this.tokenValue.toString();
 		this.tokenName="LEFT_PAR";
 		return true;
 	}
@@ -1167,7 +1173,7 @@ Expression.prototype.isRightPar = function(){
 		this.pos++;
 		this.tokenprio=1000;
 		this.tokenValue=")";
-		this.tokenSymbol=this.tokenValue.toString(); 
+		this.tokenSymbol=this.tokenValue.toString();
 		this.tokenName="RIGHT_PAR";
 		return true;
 	}
