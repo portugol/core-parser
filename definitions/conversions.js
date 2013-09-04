@@ -57,23 +57,66 @@ var self = {
 	},
 
 	scientificToString: function(scientificNumber){
-	    //adaptado de
-	    //http://stackoverflow.com/questions/16139452/how-to-convert-big-negative-scientific-notation-number-into-decimal-notation-str
 	    var data= String(scientificNumber).split(/[eE]/);
-	    if(data.length== 1) return data[0]; 
+	    if(data.length== 1) return data[0];
 
-	    var  z= '', sign= this<0? '-':'',
-	    str= data[0].replace('.', ''),
-	    mag= Number(data[1])+ 1;
+	    var number=String(data[0]).split(/[.]/);
+	    var integerPart=number[0];
+	    var decimalPart=number[1]||"";
 
-	    if(mag<0){
-	        z= sign + '0.';
-	        while(mag++) z += '0';
-	        return z + str.replace(/^\-/,'');
+	    var exponent=data[1];
+	    var positive=true;
+	    if(exponent.charAt(0)=="+"){
+	    	exponent=exponent.substring(1);
 	    }
-	    mag -= str.length;  
-	    while(mag--) z += '0';
-	    return str + z;
+	    else if(exponent.charAt(0)=="-"){
+	    	exponent=exponent.substring(1);
+	    	positive=false;
+	    }
+
+	    var result=integerPart.toString()+decimalPart.toString();
+
+	    //notação científica positiva
+	    if(positive){
+	    	//número de zeros = valor do expoente - número de casas decimais
+	   		var zeroLength=exponent-decimalPart.length;
+	    	//quando o valor do expoente é maior que o número de casas decimais
+	    	if(zeroLength>0){
+	    		while(zeroLength>0){
+		    		result+='0';
+		    		zeroLength--;
+	    		}	
+	    	}
+	    	//quando o valor do expoente é menor ou igual que o número de casas decimais
+	    	else{
+	    		var left=decimalPart.substring(0,zeroLength+decimalPart.length);
+	    		var right=decimalPart.slice(zeroLength+decimalPart.length);
+	    	}
+	    	return integerPart+left+"."+right;
+	    }
+	    //notação científica negativa
+	    else{
+	    	//o número de casas decimais final é o número do expoente mais o número de casas decimais
+	    	var decimalSize=parseInt(exponent,10)+decimalPart.length;
+	    	var delta=parseInt(exponent,10);	    	
+	    	//se o deslocamento é menor que a parte inteira
+	    	if(delta<integerPart.length){
+	    		decimalPart=integerPart.substring(integerPart.length-delta)+decimalPart;
+	    		integerPart=integerPart.substring(0,integerPart.length-delta);
+	    		return integerPart+'.'+decimalPart;
+	    	}
+	    	//se o deslocamento é maior ou igual ao tamanho da parte inteira
+	    	else{
+	    		var numZeros=delta-integerPart.length;
+	    		var zeros="";
+	    		while(numZeros>0){
+	    			zeros+='0';
+	    			numZeros--;
+	    		}
+	    		return "0."+zeros+integerPart+decimalPart;
+
+	    	}
+	    }
 	},
 	
 	scientifcAutoSize: function(number){
