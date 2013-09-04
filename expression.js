@@ -704,7 +704,7 @@ Expression.prototype.addOperand = function(type_){
 	else{
 		operand = new Token(type_, value, this.tokenSymbol, this.tokenName, this.tokenprio);
 	}
-	this.postfixStack.push(oper
+	this.postfixStack.push(operand);
 };
 
 /*
