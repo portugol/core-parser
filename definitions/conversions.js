@@ -86,13 +86,15 @@ var self = {
 		    		result+='0';
 		    		zeroLength--;
 	    		}	
+	    		return result;
 	    	}
 	    	//quando o valor do expoente é menor ou igual que o número de casas decimais
 	    	else{
 	    		var left=decimalPart.substring(0,zeroLength+decimalPart.length);
 	    		var right=decimalPart.slice(zeroLength+decimalPart.length);
+	    		return integerPart+left+"."+right;
 	    	}
-	    	return integerPart+left+"."+right;
+	    	
 	    }
 	    //notação científica negativa
 	    else{
