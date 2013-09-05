@@ -484,7 +484,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 			//salta espaço em branco
 		}
 		else {
-			this.throwError("INVALID_OPERATION",this.pos);
+			this.throwError("INVALID_OPERATION",this.pos+1);
 		}
 	} //FIM DO WHILE
 	//descarrega os operadores restantes para a pilha pos fixa
