@@ -19,7 +19,7 @@ module.exports = [
 	{
 		'id': 3,
 		'symbol': 'sin',
-		'functionName': 'sin',
+		'value': 'sin',
 		'name': "sine",
 		'type': 'mathFunction',
 		'params': 1,
@@ -28,7 +28,7 @@ module.exports = [
 	{
 		'id': 4,
 		'symbol': 'cos',
-		'functionName': 'cos',
+		'value': 'cos',
 		'name': "cosine",
 		'type': 'mathFunction',
 		'params': 1,
@@ -37,7 +37,7 @@ module.exports = [
 	{
 		'id': 5,
 		'symbol': 'tan',
-		'functionName': 'tan',
+		'value': 'tan',
 		'name': "tangent",
 		'type': 'mathFunction',
 		'params': 1,
@@ -46,7 +46,7 @@ module.exports = [
 	{
 		'id': 6,
 		'symbol': 'asin',
-		'functionName': 'asin',
+		'value': 'asin',
 		'name': "arcsine",
 		'type': 'mathFunction',
 		'params': 1,
@@ -55,7 +55,7 @@ module.exports = [
 	{
 		'id': 7,
 		'symbol': 'acos',
-		'functionName': 'acos',
+		'value': 'acos',
 		'name': "arccosine",
 		'type': 'mathFunction',
 		'params': 1,
@@ -64,7 +64,7 @@ module.exports = [
 	{
 		'id': 8,
 		'symbol': 'atan',
-		'functionName': 'atan',
+		'value': 'atan',
 		'name': "arctangent",
 		'type': 'mathFunction',
 		'params': 1,
@@ -73,7 +73,7 @@ module.exports = [
 	{
 		'id': 9,
 		'symbol': 'sqrt',
-		'functionName': 'sqrt',
+		'value': 'sqrt',
 		'name': "square root",
 		'type': 'mathFunction',
 		'params': 1,
@@ -82,7 +82,7 @@ module.exports = [
 	{
 		'id': 10,
 		'symbol': 'log',
-		'functionName': 'log',
+		'value': 'log',
 		'name': "logarithm",
 		'type': 'mathFunction',
 		'params': 1,
@@ -91,7 +91,7 @@ module.exports = [
 	{
 		'id': 11,
 		'symbol': 'abs',
-		'functionName': 'abs',
+		'value': 'abs',
 		'name': "absolute value",
 		'type': 'mathFunction',
 		'params': 1,
@@ -100,7 +100,7 @@ module.exports = [
 	{
 		'id': 12,
 		'symbol': 'ceil',
-		'functionName': 'ceil',
+		'value': 'ceil',
 		'name': "round up",
 		'type': 'mathFunction',
 		'params': 1,
@@ -109,7 +109,7 @@ module.exports = [
 	{
 		'id': 13,
 		'symbol': 'floor',
-		'functionName': 'floor',
+		'value': 'floor',
 		'name': "round down",
 		'type': 'mathFunction',
 		'params': 1,
@@ -118,7 +118,7 @@ module.exports = [
 	{
 		'id': 14,
 		'symbol': 'round',
-		'functionName': 'round',
+		'value': 'round',
 		'name': "round",
 		'type': 'mathFunction',
 		'params': 1,
@@ -127,7 +127,7 @@ module.exports = [
 	{
 		'id': 15,
 		'symbol': 'exp',
-		'functionName': 'exp',
+		'value': 'exp',
 		'name': 'exponential',
 		'type': 'mathFunction',
 		'params': 1,
@@ -136,7 +136,7 @@ module.exports = [
 	{
 		'id': 16,
 		'symbol': 'pyt',
-		'functionName': 'pyt',
+		'value': 'pyt',
 		'name': "pythagorean theorem",
 		'type': 'mathFunction',
 		'params': 2,
