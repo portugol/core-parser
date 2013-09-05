@@ -59,7 +59,7 @@ module.exports = [
 	{
 		'id': 7,
 		'symbol': 'arccos',
-		'value': 'arccos',
+		'value': 'acos',
 		'functionName': 'acos',
 		'name': "arco-coseno",
 		'type': 'mathFunction',
