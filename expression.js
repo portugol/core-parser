@@ -119,60 +119,62 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 			expected=(NUMBER| LPAREN | VAR);
 		}
 		else if(this.isArithmeticOp()){
+			//Se não é esperado um operador aritmético
 			if((expected & ARITHMETICOP) === 0){
-				//****************************************************************
-				// VERIFICAR SE O OPERANDO É DO TIPO BOOLEAN. DA ERRO
-				//****************************************************************
-				if(this.getLastType()==tokenTypes.BOOLEAN){
+				//Se não é esperado um sinal
+				if((expected & SIGNAL) === 0){
+					console.log(this.postfixStack);
 					var parameters=[this.tokenSymbol];
 					this.throwError("UNEXPECTED_ARITHMETICOP",this.pos,parameters);
 				}
-				//****************************************************************
-				//VERIFICAR SE É UM SINAL (negativo ou positivo) E AGRUPAR SINAIS
-				//****************************************************************
-				var counter=0;
-				var signals=[];
-				//verificar se há sinais positivos e negativos
-				while(this.isSignal()){
-					counter++;
-					if((expected & SIGNAL) === 0){
-						var parameters=[this.tokenSymbol];
-						this.throwError("UNEXPECTED_SIGNAL",this.pos,parameters);
-					}
-					signals.push(this.tokenValue); //guarda sinal numa pilha				
-					this.pos++;
-				}
-				//****************************************************************
-				// NAO ENCONTROU SINAIS
-				//****************************************************************
-				if(counter===0){
-					var parameters=[this.tokenSymbol];
-					this.throwError("UNEXPECTED_BINARYOP",this.pos,parameters);
-				}
-				//****************************************************************
-				// ENCONTROU UM OU MAIS SINAIS
-				//****************************************************************
 				else{
-					var previous=signals.pop();
-					while(signals.length>0){
-						var next=signals.pop();
-						if(next===previous){
-							previous="+"; //sinais iguais -> +
-						}
-						else{
-							previous="-"; //sinais diferentes -> -
-						}
+					//****************************************************************
+					//VERIFICAR SE É UM SINAL (negativo ou positivo) E AGRUPAR SINAIS
+					//****************************************************************
+					var counter=0;
+					var signals=[];
+
+					while(this.isSignal()){
+						counter++;
+						//if((expected & SIGNAL) === 0){
+						//	var parameters=[this.tokenSymbol];
+						//	this.throwError("UNEXPECTED_SIGNAL",this.pos,parameters);
+						//}
+						signals.push(this.tokenValue); //guarda sinal numa pilha				
+						this.pos++;
 					}
-					this.pos--; //acertar posição actual
-					//se o resultado for um sinal negativo cria o token
-					if(previous=="-"){
-						this.tokenValue=previous;
-						this.tokenSymbol=this.tokenValue.toString();
-						this.tokenName="NEGATIVE";
-						this.tokenprio=prio.UNARY;
-						this.addOperator(tokenTypes.UNARY_LEFT_OP);
+					//****************************************************************
+					// NAO ENCONTROU SINAIS
+					//****************************************************************
+					if(counter===0){
+						var parameters=[this.tokenSymbol];
+						this.throwError("UNEXPECTED_ARITHMETICOP",this.pos,parameters);
 					}
-					expected=(NUMBER | LPAREN |VAR | BITWISE_NOT);
+					//****************************************************************
+					// ENCONTROU UM OU MAIS SINAIS
+					//****************************************************************
+					else{
+						var previous=signals.pop();
+						while(signals.length>0){
+							var next=signals.pop();
+							if(next===previous){
+								previous="+"; //sinais iguais -> +
+							}
+							else{
+								previous="-"; //sinais diferentes -> -
+							}
+						}
+						this.pos--; //acertar posição actual
+						//se o resultado for um sinal negativo cria o token
+						if(previous=="-"){
+							this.tokenValue=previous;
+							this.tokenSymbol=this.tokenValue.toString();
+							this.tokenName="NEGATIVE";
+							this.tokenprio=prio.UNARY;
+							this.addOperator(tokenTypes.UNARY_LEFT_OP);
+						}
+						expected=(NUMBER | LPAREN |VAR | BITWISE_NOT);
+					}
 				}
 			}
 			//****************************************************************
