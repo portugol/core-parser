@@ -18,7 +18,12 @@ var self={
 		catch(e){
 			throw new EvaluatorError("UNEXPECTED_ERROR");
 		}
-		var func=eval(obj.value);
+		try{
+			var func=eval(obj.value);
+		}
+		catch(e){
+			throw "Operador não definido";
+		}
 		var funcParams=obj.params;
 		var paramTypes=obj.paramTypes;
 		if(numParams==funcParams){
@@ -42,9 +47,6 @@ var self={
 		}
 
 		finalType=tokenTypes.REAL;
-		if(func===undefined){
-			throw "Operador não definido";
-		}
 
 		//guarda o resultado da operação
 		var result =func(values);
@@ -107,6 +109,10 @@ function asin(values){
 
 function acos(values){
 	return Math.acos(values[0].value_);
+}
+
+function atan(values){
+	return Math.atan(values[0].value_);
 }
 
 function sqrt(values){
