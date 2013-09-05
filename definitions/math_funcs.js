@@ -148,9 +148,6 @@ function exp(values){
 function pyt(values) {
 	return Math.sqrt(values[0].value_ * values[0].value_+ values[1].value_ * values[1].value_);
 }
-function ceil(values){
-	return Math.ceil(values[0].value_);
-}
 
 module.exports=self;
 
