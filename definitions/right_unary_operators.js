@@ -68,16 +68,18 @@ function checkCompatibility(token1, operatorToken){
 	return comp.checkCompatibility(token1.type_, operatorToken.value_);
 }
 
-function factorial(value){
-	if(value<0){
-		throw new EvaluatorError("NEGATIVE_FACTORIAL",[value]);
+function factorial(n){
+	var fac=1;
+	for(var i=1; i<=n; i++){
+		fac=fac*i;
+		if(limits.isInfinite(fac,finalType)){
+			throw new EvaluatorError("INFINITY");
+		}
+		else if(limits.isNotNumber(fac,finalType)){
+			throw new EvaluatorError("NOT_A_NUMBER");
+		}
 	}
-	if(value===0){
-		return 1;
-	}
-	else{
-		return (value*factorial(value-1));
-	}
+	return fac;
 }
 
 module.exports=self;
