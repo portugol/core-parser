@@ -6,7 +6,8 @@ var sys = require('sys'),
 	util = require('util'),
 	Debug = require('./debug/debug'),
 	nodeNames = require('./definitions/node_names'),
-	ExpressionError=require('./errors/expression_error');
+	ExpressionError=require('./errors/expression_error'),
+	conversions=require('./definitions/conversions');
 
 var LPAREN       = 1 << 1;
 var RPAREN       = 1 << 2;
@@ -22,7 +23,8 @@ var NUMBER       = 1 << 12;
 var BITWISE_NOT  = 1 << 13;
 var VAR          = 1 << 14;
 var FACT         = 1 << 15;
-var MATHFUNC_CALL = 1<< 16;
+var MATHFUNC_CALL= 1 << 16;
+var ASSIGN       = 1 << 17;
 var PRIMARY      = (NUMBER | TEXT | BOOLEAN);
 
 var Expression = function(lng, definition, nodeType_, isArgument, outsidePos, isDebug){
@@ -73,16 +75,22 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 	this.tokenprio=0;
 	this.tokentype=0;
 	this.tmpstr="";
-	var expected=(PRIMARY | VAR | LPAREN | SIGNAL | NOT | BITWISE_NOT);
+	var expected=(PRIMARY | VAR | LPAREN | SIGNAL | NOT | BITWISE_NOT | ASSIGN);
 	this.numOperands=0;
 	this.operStack = [];
 	this.postfixStack=[];
 	this.parameterStack=[];
+	this.hasAssign=false;
 	
 	//SE A EXPRESSAO É NULA (tamanho=0)
 	try{
 		if(expr.length===0){
-			return []; //devolve array vazio
+			if(this.isArgument){
+				return []; //devolve array vazio
+			}
+			else{
+				this.throwError("NO_DATA");
+			}
 		}
 	}
 	catch(e){
@@ -111,59 +119,62 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 			expected=(NUMBER| LPAREN | VAR);
 		}
 		else if(this.isArithmeticOp()){
+			//Se não é esperado um operador aritmético
 			if((expected & ARITHMETICOP) === 0){
-				//****************************************************************
-				// VERIFICAR SE O OPERANDO É DO TIPO BOOLEAN. DA ERRO
-				//****************************************************************
-				if(this.getLastType()==tokenTypes.BOOLEAN){
+				//Se não é esperado um sinal
+				if((expected & SIGNAL) === 0){
+					console.log(this.postfixStack);
 					var parameters=[this.tokenSymbol];
 					this.throwError("UNEXPECTED_ARITHMETICOP",this.pos,parameters);
 				}
-				//****************************************************************
-				//VERIFICAR SE É UM SINAL (negativo ou positivo) E AGRUPAR SINAIS
-				//****************************************************************
-				var counter=0;
-				var signals=[];
-				//verificar se há sinais positivos e negativos
-				while(this.isSignal()){
-					counter++;
-					if((expected & SIGNAL) === 0){
-						var parameters=[this.tokenSymbol];
-						this.throwError("UNEXPECTED_SIGNAL",this.pos,parameters);
-					}
-					signals.push(this.tokenValue); //guarda sinal numa pilha				
-					this.pos++;
-				}
-				//****************************************************************
-				// NAO ENCONTROU SINAIS
-				//****************************************************************
-				if(counter===0){
-					var parameters=[this.tokenSymbol];
-					this.throwError("UNEXPECTED_BINARYOP",this.pos,parameters);
-				}
-				//****************************************************************
-				// ENCONTROU UM OU MAIS SINAIS
-				//****************************************************************
 				else{
-					var previous=signals.pop();
-					while(signals.length>0){
-						var next=signals.pop();
-						if(next===previous){
-							previous="+"; //sinais iguais -> +
-						}
-						else{
-							previous="-"; //sinais diferentes -> -
-						}
+					//****************************************************************
+					//VERIFICAR SE É UM SINAL (negativo ou positivo) E AGRUPAR SINAIS
+					//****************************************************************
+					var counter=0;
+					var signals=[];
+
+					while(this.isSignal()){
+						counter++;
+						//if((expected & SIGNAL) === 0){
+						//	var parameters=[this.tokenSymbol];
+						//	this.throwError("UNEXPECTED_SIGNAL",this.pos,parameters);
+						//}
+						signals.push(this.tokenValue); //guarda sinal numa pilha				
+						this.pos++;
 					}
-					this.pos--; //acertar posição actual
-					//se o resultado for um sinal negativo cria o token
-					if(previous=="-"){
-						this.tokenValue=previous;
-						this.tokenSymbol=this.tokenValue;
-						this.tokenprio=prio.UNARY;
-						this.addOperator(tokenTypes.UNARY_LEFT_OP);
+					//****************************************************************
+					// NAO ENCONTROU SINAIS
+					//****************************************************************
+					if(counter===0){
+						var parameters=[this.tokenSymbol];
+						this.throwError("UNEXPECTED_ARITHMETICOP",this.pos,parameters);
 					}
-					expected=(NUMBER | LPAREN |VAR | BITWISE_NOT);
+					//****************************************************************
+					// ENCONTROU UM OU MAIS SINAIS
+					//****************************************************************
+					else{
+						var previous=signals.pop();
+						while(signals.length>0){
+							var next=signals.pop();
+							if(next===previous){
+								previous="+"; //sinais iguais -> +
+							}
+							else{
+								previous="-"; //sinais diferentes -> -
+							}
+						}
+						this.pos--; //acertar posição actual
+						//se o resultado for um sinal negativo cria o token
+						if(previous=="-"){
+							this.tokenValue=previous;
+							this.tokenSymbol=this.tokenValue.toString();
+							this.tokenName="NEGATIVE";
+							this.tokenprio=prio.UNARY;
+							this.addOperator(tokenTypes.UNARY_LEFT_OP);
+						}
+						expected=(NUMBER | LPAREN |VAR | BITWISE_NOT);
+					}
 				}
 			}
 			//****************************************************************
@@ -180,7 +191,14 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				this.throwError("UNEXPECTED_LOGICOP",this.pos,parameters);
 			}
 			this.addOperator(tokenTypes.BINARY_LOGIC_OP);
-			expected=( PRIMARY | LPAREN | VAR | NOT | SIGNAL);
+			//para os casos == != < <= > >= é permitido qualquer tipo
+			if(this.tokenprio==prio.COMP1 || this.tokenprio==prio.COMP2){
+				expected=( PRIMARY | LPAREN | VAR | NOT | SIGNAL);
+			}
+			else{
+				expected=( BOOLEAN | LPAREN | VAR | NOT | SIGNAL);
+			}
+			
 			//expected=( BOOLEAN | LPAREN | VAR | NOT);	
 		}
 		else if(this.isNumber()){
@@ -213,7 +231,8 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					var aux = this.postfixStack.pop();
 					this.tokenprio=prio.VALUE;
 					this.tokenValue=aux.value_;
-					this.tokenSymbol=this.tokenValue;
+					this.tokenSymbol=this.tokenValue.toString();
+					this.tokenName="FUNC";
 					this.addOperator(tokenTypes.FUNC);
 				}
 				//****************************************************************
@@ -233,9 +252,11 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					}
 					this.pos++;
 				}
-				//ao procurar argumento chegou ao final da expressao, logo esta mal construida
-				if(this.pos>this.expr.length){
-					var parameters=[str];
+				//ao procurar argumento chegou ao final da expressao e não encontrou o 
+				//parentesis que fecha o argumento. Retorna erro
+				if(leftPar!==0){
+					var funcName=this.operStack[this.operStack.length-1].funcName;
+					var parameters=[funcName];
 					this.throwError("BAD_ARGUMENT",oldpos,parameters);
 				}
 				//guarda argumento da funçao
@@ -248,6 +269,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				this.tokenValue="argument";
 				this.tokenSymbol=argument;
 				this.tokenprio=prio.VALUE;
+				this.tokenName="ARGUMENT";
 				this.addOperand(tokenTypes.ARGUMENT);
 				if(this.isArgument){
 					//se for argumento é permitido ter uma vírgula seguir ao parentesis direito da função
@@ -283,8 +305,9 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				}
 			}
 			this.tokenValue=")";
-			this.tokenSymbol=this.tokenValue;
+			this.tokenSymbol=this.tokenValue.toString();
 			this.tokenprio=prio.PARENT;
+			this.tokenName="RIGHT_PAR";
 			this.addOperator(tokenTypes.PARENT);
 		}
 		else if(this.isNot()){
@@ -292,7 +315,8 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 			//verifica se é factorial
 				if((expected & FACT) !== 0){
 					this.tokenValue="!";
-					this.tokenSymbol=this.tokenValue;
+					this.tokenSymbol=this.tokenValue.toString();
+					this.tokenName="FACTORIAL";
 					this.tokenprio=prio.UNARY;
 					this.addOperator(tokenTypes.UNARY_RIGHT_OP);
 					expected=(ARITHMETICOP | RPAREN);
@@ -366,6 +390,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					if(definitions[i].type=='value'){
 						this.tokenSymbol=definitions[i].symbol;
 						this.tokenValue=definitions[i].value;
+						this.tokenName="BOOLEAN";
 						//se o subtipo é boolean 
 						if(definitions[i].subtype=='boolean'){
 							//this.tokenValue=definitions[i].value;
@@ -400,7 +425,8 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					//é uma definition do tipo função
 					else if(definitions[i].type=='mathFunction'){
 						this.tokenSymbol=definitions[i].symbol;
-						this.tokenValue=definitions[i].functionName;
+						this.tokenValue=definitions[i].value;
+						this.tokenName="MATHFUNCTION";
 						var completeName=definitions[i].name;
 						var extraParameters={"funcName":completeName};
 						this.addOperator(tokenTypes.MATHFUNC,extraParameters);
@@ -419,49 +445,61 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 					//throw new Error("Nao e esperada uma variavel");
 				}
 				this.tokenprio=prio.VALUE;
+				this.tokenName="VAR";
 				this.addOperand(tokenTypes.VAR);
-				//é esperado também um parentesis esquerdo porque pode ser uma função
-				expected = (ARITHMETICOP | LOGICOP | LPAREN | RPAREN | CALL | FACT);
+
+				if(this.isArgument){
+					//se for argumento é permitida vírgula após uma variável
+					expected = (ARITHMETICOP | LOGICOP | LPAREN | RPAREN | CALL | FACT | COMMA);
+				}
+				else{
+					//é esperado também um parentesis esquerdo porque pode ser uma função
+					expected = (ARITHMETICOP | LOGICOP | LPAREN | RPAREN | CALL | FACT);
+				}
 			}
 		}
 		else if(this.isAssign()){
+			if(this.hasAssign){
+				this.throwError("UNEXPECTED_ASSIGN",this.pos,parameters);
+			}
+			this.hasAssign=true;
 			if(this.isArgument){
 				var parameters=[this.expr];
 				this.throwError("ARGUMENT_ASSIGN",this.pos,parameters);
 			}
 			if(this.nodeType_!=this.nodeTypes.PROCESS){
 				var parameters=["NodeTypes."+nodeNames[this.nodeType_]];
-				//console.log("PARAMETERS");
-				//console.log(parameters);
 				this.throwError("INVALID_NODE_ASSIGN",this.pos,parameters);
 			}
-			//o item é o item que fica antes do sinal de igual
-			var item=this.postfixStack[this.postfixStack.length-1];
-			//console.log(item);
+			var firstToken=this.postfixStack[0];
 			//se ainda só existe um elemento na postfixstack e esse elemento é uma Variável
 			//a atribuição é válida, e por isso adiciona o operador = à stack
-			if(this.postfixStack.length==1 && item.type_==tokenTypes.VAR){
-				this.addOperator(tokenTypes.ASSIGN);
-			}
-			else{
-				//expressão até ao sinal de igual
+			if(this.postfixStack.length!=1 || firstToken.type_!=tokenTypes.VAR){
 				var badVar=this.expr.substring(0,this.pos-1);
 				var parameters=[badVar];
 				this.throwError("NOT_VAR_ASSIGN",this.pos,parameters);
 			}
+			this.addOperator(tokenTypes.ASSIGN);
 			expected = (PRIMARY | VAR | LPAREN | BITWISE_NOT | NOT | SIGNAL);
 		}
 		else if(this.isWhite()){
 			//salta espaço em branco
 		}
 		else {
-			this.throwError("INVALID_OPERATION",this.pos);
+			this.throwError("INVALID_OPERATION",this.pos+1);
 		}
 	} //FIM DO WHILE
 	//descarrega os operadores restantes para a pilha pos fixa
 	this.popAll();
 	if(this.isArgument){
 		this.removeCommas();
+	}
+	else{
+		//se não for argumento, e a stack pós fixa ficar vazia
+		//não foram introduzidos dados. É lançado erro
+		if(this.postfixStack.length===0){
+			this.throwError("NO_DATA");
+		}
 	}
 
 	if(this.isDebug){
@@ -481,7 +519,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 		dbg.printStack(this.operStack);
 	}
 
-
+	//console.log(this.postfixStack);
 	return this.postfixStack;
 };
 
@@ -505,7 +543,9 @@ Expression.prototype.isAssign = function(){
 	if(code1=="=" && code2!="="){
 		this.pos++;
 		this.tokenValue="=";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString();
+		this.tokenType=tokenTypes.ASSIGN;
+		this.tokenName="ASSIGN";
 		this.tokenprio=prio.ASSIGN;
 		return true;
 	}
@@ -567,7 +607,7 @@ Expression.prototype.addOperator = function(type_,extraParameters){
 		this.numOperands+=2; //são esperados 2 operandos
 	}
 
-	var operator = new Token(type_, this.tokenValue, this.tokenSymbol, this.tokenprio, extraParameters);
+	var operator = new Token(type_, this.tokenValue, this.tokenSymbol, this.tokenName, this.tokenprio, extraParameters);
 	var tmp;
 	if(this.isDebug){
 		console.log(this.tokenValue);
@@ -649,21 +689,22 @@ Expression.prototype.addOperand = function(type_){
 	var value;
 	if(type_==tokenTypes.INTEGER){
 		//conversão para inteiro
-		value=parseInt(this.tokenValue,10);
+		//value=parseInt(this.tokenValue,10);
+		value=conversions.getIntValue(this.tokenValue,type_);
 	}
 	else if(type_==tokenTypes.REAL){
 		//conversão para real
-		value=parseFloat(this.tokenValue);
+		value=conversions.getRealValue(this.tokenValue,type_);
 	}
 	else{
 		value=this.tokenValue;
 	}
 	if(type_==tokenTypes.ARGUMENT){
 		var extraParameters={"parameterStack":this.parameterStack};
-		operand = new Token(type_, this.tokenValue, this.tokenSymbol, this.tokenprio, extraParameters);
+		operand = new Token(type_, this.tokenValue, this.tokenSymbol, this.tokenName, this.tokenprio, extraParameters);
 	}
 	else{
-		operand = new Token(type_, value, this.tokenSymbol, this.tokenprio);
+		operand = new Token(type_, value, this.tokenSymbol, this.tokenName, this.tokenprio);
 	}
 	this.postfixStack.push(operand);
 };
@@ -706,7 +747,8 @@ Expression.prototype.isNot = function(){
 	if(code=="!" && code2!="="){
 		this.pos++;
 		this.tokenValue="!";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString();
+		this.tokenName="NOT";
 		this.tokenprio=prio.UNARY;
 		return true;
 	}
@@ -719,8 +761,10 @@ Expression.prototype.isBitwiseNot = function(){
 	if(code=="~"){
 		this.pos++;
 		this.tokenValue="~";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString();
+		this.tokenName="BITWISE_NOT";
 		this.tokenprio=prio.UNARY;
+		this.tokentype=tokenTypes.UNARY_LEFT_OP;
 		return true;
 	}
 	return false;
@@ -729,13 +773,15 @@ Expression.prototype.isBitwiseNot = function(){
 Expression.prototype.isSignal = function(){
 	if(this.expr.charAt(this.pos-1)=="-"){
 		this.tokenValue="-";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString();
+		this.tokenName="NEGATIVE_SIGN";
 		this.tokenprio=prio.UNARY;
 		return true;
 	}
 	else if(this.expr.charAt(this.pos-1)=="+"){
 		this.tokenValue="+";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString();
+		this.tokenName="POSITIVE_SIGN";
 		this.tokenprio=prio.UNARY;
 		return true;
 	}
@@ -748,7 +794,8 @@ Expression.prototype.isComma = function () {
 		this.pos++;
 		this.tokenprio = prio.COMMA;
 		this.tokenValue = ",";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenName="COMMA";
+		this.tokenSymbol=this.tokenValue.toString();
 		return true;
 	}
 	return false;
@@ -761,95 +808,75 @@ Expression.prototype.isArithmeticOp = function(){
 		this.tokenValue=code;
 		this.tokenprio=prio.SUM;
 		this.tokentype=tokenTypes.BINARYOP;
+		this.tokenName="SUM";
 	}
 	else if(code==="-"){
 		this.tokenValue=code;
 		this.tokenprio=prio.SUB;
 		this.tokentype=tokenTypes.BINARYOP;
+		this.tokenName="SUB";
 	}
 	else if(code==="/"){
 		this.tokenValue=code;
 		this.tokenprio=prio.DIV;
 		this.tokentype=tokenTypes.BINARYOP;
+		this.tokenName="DIV";
 	}
 	else if(code==="%"){
 		this.tokenValue=code;
 		this.tokenprio=prio.MOD;
 		this.tokentype=tokenTypes.BINARYOP;
+		this.tokenName="MOD";
 	}
 	else if(code==="*"){
 		this.tokenValue=code;
 		this.tokenprio=prio.MUL;
 		this.tokentype=tokenTypes.BINARYOP;
+		this.tokenName="MUL";
 		if(code2==="*"){
 			this.pos++;
 			this.tokenValue="**";
 			this.tokenprio=prio.POW;
 			this.tokentype=tokenTypes.BINARYOP;
+			this.tokenName="POW";
 		}
-	}
-	else if(code==="<"){
-		this.tokenprio=prio.COMP1;
-		this.tokenValue=code;
-		this.tokentype=tokenTypes.BINARY_LOGIC_OP;
-		if(code2==="="){
-			this.pos++;
-			this.tokenValue="<=";
-			this.tokentype=tokenTypes.BINARY_LOGIC_OP;
-		}
-		if(code2==="<"){
-			this.pos++;
-			this.tokenValue="<<";
-			this.tokenprio=prio.SHIFT;
-			this.tokentype=tokenTypes.BINARYOP;
-		}
-	}
-	else if(code===">"){
-		this.tokenprio=prio.COMP1;
-		this.tokenValue=code;
-		this.tokentype=tokenTypes.BINARY_LOGIC_OP;
-		if(code2==="="){
-			this.pos++;
-			this.tokenValue=">=";
-			this.tokentype=tokenTypes.BINARY_LOGIC_OP;
-		}
-		if(code2===">"){
-			this.pos++;
-			this.tokenValue=">>";
-			this.tokenprio=prio.SHIFT;
-			this.tokentype=tokenTypes.BINARYOP;
-		}
-	}
-	else if(code==="=" && code2==="="){
-			this.pos++;
-			this.tokenValue="==";
-			this.tokenprio=prio.COMP2;
-			this.tokentype=tokenTypes.BINARY_LOGIC_OP;
 	}
 	else if(code==="&" && code2!="&"){
 		this.tokenValue="&";
 		this.tokenprio=prio.BITAND;
 		this.tokentype=tokenTypes.BINARYOP;
+		this.tokenName="BITWISE_AND";
 	}
 	else if(code==="|" && code2!="|"){
 		this.tokenValue="|";
 		this.tokenprio=prio.BITINOR;
 		this.tokentype=tokenTypes.BINARYOP;
+		this.tokenName="BITWISE_OR";
 	}
 	else if(code==="^"){
 		this.tokenValue=code;
 		this.tokenprio=prio.BITEXOR;
 		this.tokentype=tokenTypes.BINARYOP;
+		this.tokenName="BITWISE_XOR";
 	}
-	else if(code==="~"){
-		this.tokenValue=code;
-		this.tokenprio=prio.UNARY;
-		this.tokentype=tokenTypes.UNARY_LEFT_OP;
+	else if(code==="<" && code2==="<"){
+			this.pos++;
+			this.tokenValue="<<";
+			this.tokenprio=prio.SHIFT;
+			this.tokentype=tokenTypes.BINARYOP;
+			this.tokenName="SHIFT_LEFT";
+	}
+	else if(code===">" && code2===">"){
+			this.pos++;
+			this.tokenValue=">>";
+			this.tokenprio=prio.SHIFT;
+			this.tokentype=tokenTypes.BINARYOP;
+			this.tokenName="SHIFT_RIGHT";
 	}
 	else{
 		return false;
 	}
-	this.tokenSymbol=this.tokenValue;
+	this.tokenSymbol=this.tokenValue.toString(); 
 	this.pos++;
 	return true;
 };
@@ -857,68 +884,131 @@ Expression.prototype.isArithmeticOp = function(){
 Expression.prototype.isLogicOp = function(){
 	var code=this.expr.charAt(this.pos);
 	var code2=this.expr.charAt(this.pos+1);
-	if(code=="!" && code2=="="){
+	if(code==="<"){
+		this.tokenprio=prio.COMP1;
+		this.tokenValue=code;
+		this.tokenName="MINOR";
+		if(code2==="="){
+			this.pos++;
+			this.tokenValue="<=";
+			this.tokenName="MINOR_EQUAL";
+		}
+	}
+	else if(code===">"){
+		this.tokenprio=prio.COMP1;
+		this.tokenValue=code;
+		this.tokenName="MAJOR";
+		if(code2==="="){
+			this.pos++;
+			this.tokenValue=">=";
+			this.tokenName="MAJOR_EQUAL";
+		}
+	}
+	else if(code==="=" && code2==="="){
+			this.pos++;
+			this.tokenValue="==";
+			this.tokenprio=prio.COMP2;
+			this.tokenName="EQUALS";
+	}
+	else if(code=="!" && code2=="="){
 		this.pos++;
 		this.tokenValue="!=";
 		this.tokenprio=prio.COMP2;
+		this.tokenName="NOT_EQUALS";
 	}
 	else if(code==="&" && code2==="&"){
 		this.pos++;
 		this.tokenValue="&&";
 		this.tokenprio=prio.LOGICAND;
+		this.tokenName="LOGIC_AND";
 	}
 	else if(code==="|" && code2==="|"){
 		this.pos++;
 		this.tokenValue="||";
 		this.tokenprio=prio.LOGICOR;
+		this.tokenName="LOGIC_OR";
 	}
 	else{
 		return false;
 	}
-	this.tokenSymbol=this.tokenValue;
+	this.tokenType=tokenTypes.BINARY_LOGIC_OP;
+	this.tokenSymbol=this.tokenValue.toString();
 	this.pos++;
 	return true;
 };
 
 Expression.prototype.isNumber = function(){
-	var r = false;
+	var hasIntPart=false;
+	var hasDecimalPart=false;
 	var str = "";
-	var decimalPoint=0;
 
-	while (this.pos < this.expr.length) {
-		var code = this.expr.charAt(this.pos);
-		//se é algarismo
-		if (code >= '0' && code <= '9') {
-			str += this.expr.charAt(this.pos);
-			this.pos++;
-			this.tokenValue=str;
-			this.tokentype=tokenTypes.INTEGER;
-			r = true;
+	//PARTE INTEIRA----------------------
+	var intPart=this.getNumbers();
+	if(intPart!==""){
+		str+=intPart;
+		hasIntPart=true;
+		this.tokenValue=str;
+		this.tokenSymbol=str;
+		this.tokentype=tokenTypes.INTEGER;
+	}
+	else{
+		return false; //se o primeiro digito não é algarismo, então não exite número. retorna false
+	}
+
+	//PARTE DECIMAL----------------------
+	var code=this.expr.charAt(this.pos);
+	if(code=="."){
+		str+=code;
+		this.pos++;
+		code=this.expr.charAt(this.pos);
+		if(code=="."){
+			this.throwError("TOO_MANY_DECIMAL_POINT",this.pos);
 		}
-		//se é ponto decimal
-		else if(code=='.'){
-			str += this.expr.charAt(this.pos);
-			this.pos++;
+		var decimalPart=this.getNumbers(); //guarda números depois do ponto decimal
+		if(decimalPart!==""){
+			str+=decimalPart;
+			hasDecimalPart=true;
 			this.tokenValue=str;
-			str += this.isDecimalPart();
-			this.tokenValue=str;
+			this.tokenSymbol=str;
 			this.tokentype=tokenTypes.REAL;
-		}/*
-		if(code=='e' || code=='E'){
-			str+=this.expr.charAt(this.pos);
-			this.pos++;
-			str+=this.addScientificNotation();
-			this.tokenValue=str;
-			this.tokentype=tokenTypes.INTEGER;
-		}*/
-		else {
-			break; //quebra o ciclo quando o caracter não for um algarismo nem ponto decimal
+		}
+		else{
+			this.throwError("BAD_DECIMAL_PART",this.pos);
 		}
 	}
-	this.tokenSymbol=this.tokenValue;
+
+	//NOTAÇÃO CIENTÍFICA----------------------
+	var code=this.expr.charAt(this.pos);
+	if(code=="e" || code=="E"){
+		str+=code;
+		this.pos++;
+		code=this.expr.charAt(this.pos);
+		if(code=="+"){
+			str+=code;
+			this.pos++;
+			this.tokentype=tokenTypes.REAL; 
+		}
+		else if(code=="-"){
+			str+=code;
+			this.pos++;
+			this.tokentype=tokenTypes.REAL;
+		}
+		var exponent=this.getNumbers(); //guarda números depois do E
+		if(exponent!==""){
+			str+=exponent;
+			this.tokenValue=str;
+			this.tokenSymbol=conversions.scientifcAutoSize(str);
+		}
+		else{
+			this.throwError("BAD_SCIENTIFIC_NOTATION",this.pos);
+		}
+	}
+
 	this.tokenprio=prio.VALUE;
-	return r;
+	this.tokenName="NUMBER";
+	return true; //se chegar até aqui  é um número
 };
+
 
 Expression.prototype.isDecimalPart = function(){
 	var str = "";
@@ -947,20 +1037,17 @@ Expression.prototype.isDecimalPart = function(){
 	return str;
 };
 
-Expression.prototype.addScientificNotation= function(){
-	var str = "";
-	var ch = this.expr.charAt(this.pos);
-	if(ch=="+" || ch=="-"){
-		str+=ch;
-	}
-	//percorre os caracteres da expressão desde a posição actual ao final
+Expression.prototype.getNumbers = function(){
+	var str="";
 	while (this.pos < this.expr.length) {
-		ch=this.expr.charAt(this.pos);
-		if(ch >= '0' && ch <= '9'){
-			str+=ch;
+		var code = this.expr.charAt(this.pos);
+		//se é algarismo
+		if (code >= '0' && code <= '9') {
+			str += this.expr.charAt(this.pos);
+			this.pos++;
 		}
 		else{
-			this.throwError("BAD_SCIENTIFIC_NOTATION",this.pos);
+			break;
 		}
 	}
 	return str;
@@ -985,7 +1072,7 @@ Expression.prototype.getText = function(){
 	this.pos+=str.length;
 	this.tmpstr=str;
 	this.tokenValue=str;
-	this.tokenSymbol=this.tokenValue;
+	this.tokenSymbol=this.tokenValue.toString();
 	return str;
 };
 
@@ -1009,8 +1096,9 @@ Expression.prototype.isString = function(){
 			else {
 				this.pos++;
 				this.tokenValue = this.unescape(str, startpos);
-				this.tokenSymbol=this.tokenValue;
+				this.tokenSymbol=this.tokenValue.toString();
 				this.tokenprio=prio.VALUE;
+				this.tokenName="STRING";
 				return true;
 			}
 		}
@@ -1049,8 +1137,9 @@ Expression.prototype.isChar = function(){
 					this.throwError("CHAR_INVALID_SIZE",startpos+1,parameters);
 				}
 				this.tokenValue=str;
-				this.tokenSymbol=this.tokenValue;
+				this.tokenSymbol=this.tokenValue.toString();
 				this.tokenprio=prio.VALUE;
+				this.tokenName="CHAR";
 				return true;
 			}
 		}
@@ -1069,7 +1158,8 @@ Expression.prototype.isLeftPar = function(){
 		this.pos++;
 		this.tokenprio=1000; //para quando aparecer um sinal menos prioritario nao remover o parentesis
 		this.tokenValue="(";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString();
+		this.tokenName="LEFT_PAR";
 		return true;
 	}
 	return false;
@@ -1080,7 +1170,8 @@ Expression.prototype.isRightPar = function(){
 		this.pos++;
 		this.tokenprio=1000;
 		this.tokenValue=")";
-		this.tokenSymbol=this.tokenValue;
+		this.tokenSymbol=this.tokenValue.toString();
+		this.tokenName="RIGHT_PAR";
 		return true;
 	}
 	return false;
@@ -1088,7 +1179,38 @@ Expression.prototype.isRightPar = function(){
 
 Expression.prototype.isWhite = function(){
 	if(this.expr.charAt(this.pos)==" "){
+		var firstSpace=this.pos;
+		var lastSpace=firstSpace;
 		this.pos++;
+		//calcular último espaço de uma sequência
+		for(var i=this.pos; i<this.expr.length; i++){
+			if(this.expr.charAt(this.pos)!=" "){
+				break;
+			}
+			this.pos++;
+		}
+		lastSpace=this.pos-1;
+
+		//se a sequência de espaços está no início da expressão, são todos removidos
+		if(firstSpace===0){
+			var right=this.expr.substring(lastSpace+1,this.expr.length);
+			this.expr=right;
+			this.pos=0;
+		}
+		//se a sequência de es;paços está no final da expressão, são todos removidos
+		else if(this.pos==this.expr.length){
+			var left=this.expr.substring(0,firstSpace);
+			this.expr=left;
+			this.pos=firstSpace;
+		}
+		//se estiver no meio converte a sequência de espaços para apenas um espaço
+		else{
+			//remover espaços da expressão e actualizar posição actual
+			var left=this.expr.substring(0,firstSpace);
+			var right=this.expr.substring(lastSpace,this.expr.length);
+			this.expr=left+right;
+			this.pos=firstSpace+1;
+		}
 		return true;
 	}
 	return false;
@@ -1148,7 +1270,6 @@ Expression.prototype.unescape = function(v, pos) {
 		else {
 			if (c == '\\') {
 				escaping = true;
-				console.log("BARRA APRA TRAS");
 			}
 			else {
 				buffer+=c;

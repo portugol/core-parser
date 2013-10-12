@@ -1,21 +1,21 @@
 var Expression= require('./expression'),
 	tokenTypes=require('./definitions/token_types'),
-	comp=require('./compatibility/binary_comp').binComp,
-	binLogicOps=require('./definitions/binary_logical_operators').logicalOps,
-	binOps=require('./definitions/binary_operators').binaryOps,
-	leftUnaryOps=require('./definitions/left_unary_operators').leftUnaryOps,
-	rightUnaryOps=require('./definitions/right_unary_operators').rightUnaryOps,
+	comp=require('./compatibility/binary_comp'),
+	binLogicOps=require('./definitions/binary_logical_operators'),
+	binOps=require('./definitions/binary_operators'),
+	leftUnaryOps=require('./definitions/left_unary_operators'),
+	rightUnaryOps=require('./definitions/right_unary_operators'),
 	Debug = require('./debug/debug'),
-	mathfuncs=require('./definitions/math_funcs').mathFuncs,
+	mathfuncs=require('./definitions/math_funcs'),
 	Var=require('./var'),
 	varTypes=require('./definitions/var_types'),
 	Token= require('./token'),
-	limits=require('./definitions/limits').limits,
+	limits=require('./definitions/limits'),
 	EvaluatorError=require('./errors/evaluator_error'),
 	ExpressionError=require('./errors/expression_error'),
-	conversions=require('./definitions/conversions').conversions,
-	dictionary = require('./definitions/dictionary'),
-	casts = require('./definitions/casts.js').casts;
+	conversions=require('./definitions/conversions'),
+	casts = require('./definitions/casts.js'),
+	htmlEscape= require('./tools/html_escape');
 
 
 var Evaluator = function(definition, memory, lng, isArgument){
@@ -25,24 +25,24 @@ var Evaluator = function(definition, memory, lng, isArgument){
 	this.lng=lng;
 
 	try{
-  		dictionary = require('./definitions/'+lng+'/dictionary');
+  		this.dictionary = require('./definitions/'+lng+'/dictionary');
 	}
 	catch(e){
-		dictionary = require('./definitions/dev/dictionary');
+		this.dictionary = require('./definitions/dev/dictionary');
 	}
 };
 
 Evaluator.prototype.setLanguage = function(lng) {
 	this.lng=lng;
 	try{
-		dictionary = require('./definitions/'+lng+'/dictionary');
+		this.dictionary = require('./definitions/'+lng+'/dictionary');
 	}
 	catch(e){
-		dictionary = require('./definitions/dev/dictionary');
+		this.dictionary = require('./definitions/dev/dictionary');
 	}
 };
 
-Evaluator.prototype.evaluate = function(node,level){
+Evaluator.prototype.evaluate = function(node,graph){
 	this.tempstack=[];
 
 
@@ -58,7 +58,6 @@ Evaluator.prototype.evaluate = function(node,level){
 	this.resultToken={};
 	this.token1={};
 	this.token2={};
-	this.level=level||0;
 
 	//se a stack não tem items
 	if(this.postfixstack.length===0 ||this.postfixstack===undefined || this.postfixstack===null){
@@ -75,6 +74,7 @@ Evaluator.prototype.evaluate = function(node,level){
 		console.log("A stack pos fixa esta vazia no evaluator");
 		this.throwError("UNEXPECTED_ERROR");
 	}
+
 	this.checkMemoryVars(this.postfixstack,this.memory);
 	this.checkFunctions(this.postfixstack);
 
@@ -105,7 +105,7 @@ Evaluator.prototype.evaluate = function(node,level){
 				this.resultToken=binOps.calculate(this.token1, this.token2, this.item);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -115,10 +115,10 @@ Evaluator.prototype.evaluate = function(node,level){
 				this.throwError("PARITY_ERROR");
 			}
 			try{
-				this.resultToken=leftUnaryOps.calculate(this.token1, this.item);
+				this.resultToken=leftUnaryOps.calculate(this.token1, this.item, this.dictionary);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -128,10 +128,10 @@ Evaluator.prototype.evaluate = function(node,level){
 				this.throwError("PARITY_ERROR");
 			}
 			try{
-				this.resultToken=rightUnaryOps.calculate(this.token1, this.item);
+				this.resultToken=rightUnaryOps.calculate(this.token1, this.item, this.dictionary);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -142,10 +142,10 @@ Evaluator.prototype.evaluate = function(node,level){
 				this.throwError("PARITY_ERROR");
 			}
 			try{
-				this.resultToken=binLogicOps.calculate(this.token1, this.token2, this.item);
+				this.resultToken=binLogicOps.calculate(this.token1, this.token2, this.item, this.dictionary);
 			}
 			catch(err){
-				this.throwError(err);
+				throw err;
 			}
 			this.tempstack.push(this.resultToken);
 		}
@@ -158,15 +158,16 @@ Evaluator.prototype.evaluate = function(node,level){
 			var params;
 			try{
 				var e = new Evaluator(this.nodeTypes,this.memory, this.lng, true);
-				params=e.evaluate(this.token1,this.level);
+				params=e.evaluate(this.token1);
 			}
 			catch(err){
 				throw err;
 			}
 			try{
-				this.resultToken=mathfuncs.calculate(params,this.item);
+				this.resultToken=mathfuncs.calculate(params,this.item,this.dictionary);
 			}
 			catch(err){
+				console.log(err);
 				throw err;
 			}
 			this.tempstack.push(this.resultToken);
@@ -174,27 +175,49 @@ Evaluator.prototype.evaluate = function(node,level){
 		else if(this.item.type_==tokenTypes.ASSIGN){
 			this.token2=this.tempstack.pop();
 			this.token1=this.tempstack.pop();
+
+			var variableName=this.token1.value_;
+
+			var resultType=this.token2.type_;
+			var resultValue=this.token2.value_;
+			var resultSymbol=this.escapeHtml(this.token2.symbol_);
+
 			//procura a variável pelo nome na memória
-			var v = this.memory.getVar(this.token1.value_);
+			var v = this.memory.getVar(variableName);
 			//se a variável não existir na memória
 			if(v===undefined){
-				//cria a variável (depois mudar o nível da variável!!!!!!!!!)
-				//this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level,this.getVarTypeName(this.token2.type_)));
-				this.memory.addVar(new Var(this.token1.value_,this.token2.type_,this.token2.value_,this.level,conversions.codeToVarType(this.token2.type_)));
-				return this.token2.value_;
+				var variable=new Var(variableName,resultType,resultValue,resultSymbol,node.level,conversions.codeToVarType(resultType));
+				this.memory.addVar(variable);
+				graph.memoryChanged=true;
+				return resultSymbol;
 			}
-			//se a variável já existe e vai receber o mesmo tipo de dados
-			if(v.type_==this.token2.type_){
-				v.value_=this.token2.value_; //actualiza o valor da variável
-				return this.token2.value_;
+			//se a variável vai receber o mesmo tipo de dados
+			if(v.type_==resultType){
+				v.setValue(resultValue); //actualiza o valor da variável
+				v.setSymbol(resultSymbol); //actualiza o valor visual da variável
+				graph.memoryChanged=true;
+				return resultSymbol;
 			}
+			//se os tipo de variável é diferente do resultado obtido
 			else{
 				try{
-					v.setValue(casts.castToType(this.token2,v.getType()));
-					return v.getValue();
+					//se for possível fazer cast significa que o valor da variável é igual ao valor visual (símbolo)
+					//exemplos:
+					//1.5 -> 1 (double -> int)  value:1, symbol:1
+					//'c' -> "c" (char -> String)  value: "c", symbol:"c"
+					//os boolean não podem ser convertidos para outros tipos ou vice-versa
+					//portanto não há problemas de multilingua, em que o símbolo é diferente do value
+					// exemplo pt-PT -> value:true , symbol:"VERDADEIRO"
+					// exemplo en-US -> value:true , symbol:"TRUE"
+					//
+					//conclusao: neste caso os atributos 'value' e 'symbol' da variável são iguais
+					var value=v.setValue(casts.castToType(this.token2,v.getType()));
+					v.setSymbol(value.toString()); //ALTERADO AQUI
+					graph.memoryChanged=true;
+					return value;
 				}
 				catch(err){
-					var parameters=[this.token2.value_, "VarTypes."+conversions.codeToVarType(this.token2.type_), v.name_,"VarTypes."+conversions.codeToVarType(v.getType())];
+					var parameters=[resultSymbol, "VarTypes."+conversions.codeToVarType(resultType), v.name_,"VarTypes."+conversions.codeToVarType(v.getType())];
 					this.throwError("INCOMPATIBLE_ASSIGN",parameters);
 				}
 			}
@@ -207,21 +230,37 @@ Evaluator.prototype.evaluate = function(node,level){
 	//criar variável na memória ou actualizar se for um nó do tipo READ
 	if(node.type==this.nodeTypes.READ){
 		var varName=node.data;
-		var variable=this.memory.getVar(varName);
+		var v=this.memory.getVar(varName);
+
+		var resultType=this.resultToken.type_;
+		var resultValue=this.resultToken.value_;
+		var resultSymbol=this.resultToken.symbol_;
+
+		console.log("________________________________")
+		console.log(this.resultToken);
 		//se a variável não existe
-		if(variable===undefined){
-			//this.memory.addVar(new Var(varName,this.resultToken.type_,this.resultToken.value_,this.level,this.getVarTypeName(this.token2.type_)));
-			this.memory.addVar(new Var(varName,this.resultToken.type_,this.resultToken.value_,this.level,conversions.codeToVarType(this.resultToken.type_)));
+		if(v===undefined){
+			this.memory.addVar(new Var(varName,resultType,resultValue,resultSymbol,node.level,conversions.codeToVarType(resultType)));
+			graph.memoryChanged=true;
+			return resultSymbol;
 		}
 		else{
 			//se o tipo da variável é igual ao tipo do token
-			if(variable.type_==this.resultToken.type_){
-				this.memory.setValue(varName,this.resultToken.value_);
+			if(v.type_==resultType){
+				this.memory.setValue(varName,resultValue);
+				this.memory.setSymbol(varName,resultSymbol);
+				return resultSymbol;
 			}
 			else{
-				//var parameters=[this.resultToken.value_, "VarTypes."+this.getVarTypeName(this.resultToken.type_), variable.name_,"VarTypes."+this.getVarTypeName(variable.type_)];
-				var parameters=[this.resultToken.value_, "VarTypes."+conversions.codeToVarType(this.resultToken.type_), variable.name_,"VarTypes."+conversions.codeToVarType(variable.type_)];
-				this.throwError("INCOMPATIBLE_UPDATE",parameters);
+				try{
+					var value=v.setValue(casts.castToType(this.resultToken,v.getType()));
+					v.setSymbol(value.toString()); //ALTERADO AQUI
+					return value;
+				}
+				catch(err){
+					var parameters=[resultSymbol, "VarTypes."+conversions.codeToVarType(resultType), v.name_,"VarTypes."+conversions.codeToVarType(v.type_)];
+					this.throwError("INCOMPATIBLE_ASSIGN",parameters);
+				}
 			}
 		}
 	}
@@ -229,10 +268,10 @@ Evaluator.prototype.evaluate = function(node,level){
 		return this.tempstack;
 	}
 	if(this.resultToken.type_==tokenTypes.INTEGER){
-		return parseInt(this.resultToken.value_,10);
+		return conversions.getIntValue(this.resultToken.value_,this.resultToken.type_);
 	}
 	if(this.resultToken.type_==tokenTypes.REAL){
-		return parseFloat(this.resultToken.value_,10);
+		return conversions.getRealValue(this.resultToken.value_);
 	}
 	if(this.resultToken.type_==tokenTypes.CHAR){
 		return this.resultToken.value_;
@@ -241,19 +280,28 @@ Evaluator.prototype.evaluate = function(node,level){
 		return this.resultToken.value_;
 	}
 	if(this.resultToken.type_==tokenTypes.BOOLEAN){
-		var result;
-		//procurar no dicionário a tradução para a língua utilizada
-		for(var i=0; i<=dictionary.length; i++){
-			if(dictionary[i].value==this.resultToken.value_){
-				result=dictionary[i].value;
-				break;
+		var result=this.resultToken.value_;
+		//se o nó for IF apenas necessita da tag true ou false para escolher o ramo certo
+		if(node.type==this.nodeTypes.IF){
+			return result;
+		}
+		//se o nó não for IF precisa da tag true ou false traduzida para a respectiva língua
+		else{
+			try{
+				//procurar no dicionário a tradução para a língua utilizada
+				for(var i=0; i<=this.dictionary.length; i++){
+					if(this.dictionary[i].value==this.resultToken.value_){
+						result=this.dictionary[i].symbol; //actualiza result
+						break;
+					}
+				}
+			}
+			catch(err){
+				this.throwError("UNEXPECTED_ERROR");
 			}
 		}
 		return result;
-	}/*
-	else{
-		return this.tempstack[0].value_;
-	}*/
+	}
 };
 
 Evaluator.prototype.checkMemoryVars = function(stack,mem){
@@ -268,7 +316,7 @@ Evaluator.prototype.checkMemoryVars = function(stack,mem){
 			var v = mem.getVar(stack[i].value_);
 			//se a variável existe em memória substitui pelo seu valor.
 			if(v!==undefined){
-				stack[i]=new Token(v.type_,v.value_);
+				stack[i]=new Token(v.type_,v.value_,v.symbol_);
 			}
 			else{
 				var parameters=[stack[i].value_];
@@ -304,6 +352,10 @@ Evaluator.prototype.getFinalType = function(token1, token2){
 
 Evaluator.prototype.getVarTypeName = function(typeValue){
 	return varTypes[typeValue];
+};
+
+Evaluator.prototype.escapeHtml = function(string){
+  return htmlEscape.escapeHtml(string);
 };
 
 Evaluator.prototype.throwError = function(errorCode, parameters){

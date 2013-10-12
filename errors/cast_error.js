@@ -4,6 +4,6 @@ var CastError = function(errorCode, parameters) {
     this.parameters=parameters||[];
 };
 
-CastError.prototype = new Error();
+require('util').inherits(CastError, Error);
 
 module.exports = CastError;

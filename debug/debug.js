@@ -4,7 +4,7 @@ var tokenTypes=require('../definitions/token_types'),
 
 var Debug = function(){
 	
-}
+};
 
 Debug.prototype.printStack = function(stack){
 	printStack(stack);
@@ -104,6 +104,6 @@ function printStack(stack){
 		console.log(str);
 	}
 	console.log("\n");
-};
+}
 
 module.exports = Debug;

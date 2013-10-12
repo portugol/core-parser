@@ -1,4 +1,4 @@
-var c=require('./compatibility').compatibility;
+var c=require('./compatibility');
 var tokenTypes= require('../definitions/token_types');
 var Evaluator=require('../evaluator');
 

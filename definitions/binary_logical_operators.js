@@ -1,8 +1,10 @@
 var tokenTypes=require('./token_types'),
 prio= require('./priorities'),
 Token=require('../token'),
-limits=require('./limits').limits,
-conversions=require('./conversions').conversions;
+limits=require('./limits'),
+conversions=require('./conversions'),
+dictionaryFuncs=require('./dictionary_funcs'),
+EvaluatorError=require('../errors/evaluator_error');
 
 var ops={
 	"==": equals,
@@ -17,10 +19,11 @@ var ops={
 
 var finalType={};
 
-module.exports.logicalOps ={
-	calculate: function(token1, token2, operatorToken){
+var self ={
+	calculate: function(token1, token2, operatorToken, dictionary){
 		if(!(conversions.checkCompatibility(token1, token2, operatorToken))){
-			throw "Operação entre tipos incompatíveis";
+			var parameters=[operatorToken.symbol_,"TokenNames."+operatorToken.name_,"VarTypes."+conversions.codeToVarType(token1.type_),"VarTypes."+conversions.codeToVarType(token2.type_)];
+			throw new EvaluatorError("INCOMPATIBLE_BINARY_OPERATION",parameters);
 		}
 		finalType=conversions.getFinalType(token1,token2);
 
@@ -35,12 +38,13 @@ module.exports.logicalOps ={
 		var value2 =token2.value_;
 
 		//guarda o resultado da operação
-		var result =func(value1,value2);
-		return new Token(tokenTypes.BOOLEAN, result);
+		var result=func(value1,value2);
+		//traduzir para a lingua respectiva
+		var symbol=dictionaryFuncs.getSymbolByValue(dictionary,result);
+		
+		return new Token(tokenTypes.BOOLEAN, result,symbol);
 	}
 };
-
-
 
 function equals(value1,value2){
 	return (value1==value2);
@@ -73,3 +77,5 @@ function logicOr(value1,value2){
 function logicAnd(value1,value2){
 	return (value1 && value2);
 }
+
+module.exports=self;

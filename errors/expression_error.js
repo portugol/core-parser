@@ -1,3 +1,5 @@
+var ProgramError = require('./program_error');
+
 var ExpressionError = function(errorCode, column, parameters) {
 	this.name="ExpressionError";
     this.code=errorCode;
@@ -5,6 +7,6 @@ var ExpressionError = function(errorCode, column, parameters) {
     this.parameters=parameters||[];
 };
 
-ExpressionError.prototype = new Error();
+require('util').inherits(ExpressionError, ProgramError);
 
 module.exports = ExpressionError;

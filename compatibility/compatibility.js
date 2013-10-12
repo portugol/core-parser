@@ -75,9 +75,7 @@ var lists = {
 
 
 
-module.exports.compatibility = {
-	//construtor
-
+var self = {
 	INTEGER: operandCodes.INTEGER,
 	REAL: operandCodes.REAL,
 	STRING: operandCodes.STRING,
@@ -86,41 +84,6 @@ module.exports.compatibility = {
 	NULL:    operandCodes.NULL,
 	ALL:     operandCodes.ALL,
 	NUMBER:  operandCodes.NUMBER,
-
-	//*******************************************
-	// TIPOS DE VARIAVEL RESULTANTES DE OPERAÇÕES
-	//*******************************************
-
-	/*
-	var operandCodes.INTEGERVars ={
-		operandCodes.INTEGER: tokenTypes.operandCodes.INTEGER,
-		operandCodes.REAL: tokenTypes.operandCodes.REAL,
-		operandCodes.STRING: tokenTypes.operandCodes.STRING,
-		operandCodes.CHAR: tokenTypes.operandCodes.CHAR
-	};
-	var operandCodes.REALVars ={
-		operandCodes.INTEGER: tokenTypes.operandCodes.REAL,
-		operandCodes.REAL: tokenTypes.operandCodes.REAL,
-		operandCodes.STRING: tokenTypes.operandCodes.STRING
-	};
-
-	var operandCodes.STRINGVars ={
-		operandCodes.INTEGER: tokenTypes.operandCodes.STRING,
-		operandCodes.REAL: tokenTypes.operandCodes.STRING,
-		operandCodes.STRING: tokenTypes.operandCodes.STRING,
-		operandCodes.CHAR: tokenTypes.operandCodes.STRING
-	};
-
-	var operandCodes.CHARVars ={
-		operandCodes.INTEGER: tokenTypes.operandCodes.CHAR,
-		operandCodes.STRING: tokenTypes.operandCodes.STRING,
-		operandCodes.CHAR: tokenTypes.operandCodes.CHAR
-	};
-
-	var operandCodes.BOOLEANVars ={
-		operandCodes.BOOLEAN: tokenTypes.operandCodes.BOOLEAN
-	};*/
-
 
 	varResult: [
 	{
@@ -215,7 +178,6 @@ module.exports.compatibility = {
 	}
 	],
 
-
 	checkCompatibility: function(tokenType1, operatorSymbol, tokenType2){
 		var list;
 		var operandCode;
@@ -262,7 +224,6 @@ module.exports.compatibility = {
 			throw Error("tipo invalido");
 		}
 
-
 		//verificar se o tokenType1 suporta a operação cujo símbolo é igual ao operatorSymbol
 		if(operatorSymbol in list){
 			//verificar se a operação é suportada entre o tokenType1 e o tokenType2
@@ -276,30 +237,6 @@ module.exports.compatibility = {
 	getFinalType: function(varType1, varType2){
 		var list;
 		var finalType;
-
-		/*
-		//escolhe a lista de compatibilidade adequada ao tokenType1
-		switch (varType1) {
-			case operandCodes.INTEGER:
-				list=operandCodes.INTEGERVars;
-				break;
-			case operandCodes.REAL:
-				list=operandCodes.REALVars;
-				break;
-			case operandCodes.CHAR:
-				list=operandCodes.CHARVars;
-				break;
-			case operandCodes.STRING:
-				list=operandCodes.STRINGVars;
-				break;
-			case operandCodes.BOOLEAN:
-				list=operandCodes.BOOLEANVars;
-				break;
-			default:
-				throw Error("tipo invalido");
-			}*/
-
-
 		//percorre os vários tipos de variável do array varResult
 		for(var i=0; i<this.varResult.length; i++){
 			//verifica se encontrou o tipo correcto
@@ -323,5 +260,6 @@ module.exports.compatibility = {
 		//devolve o tipo de variável resultante
 		return finalType;
 	}
-
 };
+
+module.exports=self;
