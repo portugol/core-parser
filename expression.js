@@ -255,7 +255,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				//ao procurar argumento chegou ao final da expressao e não encontrou o 
 				//parentesis que fecha o argumento. Retorna erro
 				if(leftPar!==0){
-					var funcName=this.operStack[this.operStack.length-1].funcName;
+					var funcName=this.operStack[this.operStack.length-1].value_;
 					var parameters=[funcName];
 					this.throwError("BAD_ARGUMENT",oldpos,parameters);
 				}
@@ -347,7 +347,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 		else if(this.isChar()){
 			if((expected & TEXT) === 0){
 				var parameters=[this.tokenSymbol];
-				this.throwError("UNEXPECTED_CHAR",this.pos,parameters);
+				this.throwError("UNEXPECTED_CHAR",this.pos-this.tokenSymbol.length-1,parameters);
 			}
 			this.addOperand(tokenTypes.CHAR);
 			if(this.isArgument){
@@ -362,7 +362,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 		else if(this.isString()){
 			if((expected & TEXT) === 0){
 				var parameters=[this.tokenSymbol];
-				this.throwError("UNEXPECTED_STRING",this.pos,parameters);
+				this.throwError("UNEXPECTED_STRING",this.pos-this.tokenSymbol.length-1,parameters);
 				//throw new Error("Nao e esperada uma string");
 			}
 			this.addOperand(tokenTypes.STRING);
