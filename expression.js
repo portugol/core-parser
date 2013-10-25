@@ -123,7 +123,6 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 			if((expected & ARITHMETICOP) === 0){
 				//Se não é esperado um sinal
 				if((expected & SIGNAL) === 0){
-					console.log(this.postfixStack);
 					var parameters=[this.tokenSymbol];
 					this.throwError("UNEXPECTED_ARITHMETICOP",this.pos,parameters);
 				}
@@ -182,7 +181,11 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 			//****************************************************************
 			else{
 				this.addOperator(this.tokentype);
-				expected=(NUMBER| TEXT | LPAREN | VAR | SIGNAL | BITWISE_NOT);
+				expected=(NUMBER| LPAREN | VAR | SIGNAL | BITWISE_NOT);
+				//se for uma soma também é permitido texto
+				if(this.tokenSymbol=="+"){
+					expected=expected|TEXT;
+				}
 			}
 		}
 		else if(this.isLogicOp()){
@@ -196,7 +199,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				expected=( PRIMARY | LPAREN | VAR | NOT | SIGNAL);
 			}
 			else{
-				expected=( BOOLEAN | LPAREN | VAR | NOT | SIGNAL);
+				expected=( BOOLEAN | LPAREN | VAR | NOT);
 			}
 			
 			//expected=( BOOLEAN | LPAREN | VAR | NOT);	
@@ -257,7 +260,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				if(leftPar!==0){
 					var funcName=this.operStack[this.operStack.length-1].value_;
 					var parameters=[funcName];
-					this.throwError("BAD_ARGUMENT",oldpos,parameters);
+					this.throwError("BAD_ARGUMENT",this.pos,parameters);
 				}
 				//guarda argumento da funçao
 				var argument=this.expr.substring(oldpos,this.pos-1);
@@ -399,6 +402,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 								var parameters=[this.tmpstr];
 								this.throwError("UNEXPECTED_BOOLEAN",(this.pos-definitions[i].symbol.length+1),parameters);
 							}
+
 							this.addOperand(tokenTypes.BOOLEAN);
 							expected = (LOGICOP | RPAREN);
 							//se neste momento é um argumento é esperada também uma vírgula
@@ -414,10 +418,18 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 						//o subtipo não é boolean nem null
 						//se neste momento está a ser avaliado um argumento é esperada  ainda uma vírgula
 						else if(this.isArgument){
+							if((expected & NUMBER)===0){
+								var parameters=[this.tmpstr];
+								this.throwError("UNEXPECTED_CONSTANT",(this.pos-definitions[i].symbol.length+1),parameters);
+							}
 							this.addOperand(tokenTypes.REAL);
 							expected = (ARITHMETICOP | LOGICOP | RPAREN | COMMA);
 						}
 						else{
+							if((expected & NUMBER)===0){
+								var parameters=[this.tmpstr];
+								this.throwError("UNEXPECTED_CONSTANT",(this.pos-definitions[i].symbol.length+1),parameters);
+							}
 							this.addOperand(tokenTypes.REAL);
 							expected = (ARITHMETICOP | LOGICOP | RPAREN);
 						}
@@ -441,7 +453,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 				//Se não é esperada uma variável dá erro
 				if ((expected & VAR) === 0) {
 					var parameters=[this.tokenSymbol];
-					this.throwError("UNEXPECTED_VAR",this.pos,parameters);
+					this.throwError("UNEXPECTED_VAR",this.pos-this.tokenSymbol.length,parameters);
 					//throw new Error("Nao e esperada uma variavel");
 				}
 				this.tokenprio=prio.VALUE;
@@ -518,8 +530,7 @@ Expression.prototype.toPostfix = function(expr,nodeType_){
 		console.log("OPERATOR STACK:");
 		dbg.printStack(this.operStack);
 	}
-
-	//console.log(this.postfixStack);
+	//console.log(util.inspect(this.postfixStack, true, 10, true));
 	return this.postfixStack;
 };
 
@@ -1178,13 +1189,15 @@ Expression.prototype.isRightPar = function(){
 };
 
 Expression.prototype.isWhite = function(){
-	if(this.expr.charAt(this.pos)==" "){
+	//caracter atual for espaço
+	if(this.checkWhite(this.expr.charAt(this.pos))){
 		var firstSpace=this.pos;
 		var lastSpace=firstSpace;
 		this.pos++;
 		//calcular último espaço de uma sequência
 		for(var i=this.pos; i<this.expr.length; i++){
-			if(this.expr.charAt(this.pos)!=" "){
+			//se não for espaço
+			if(this.checkWhite(this.expr.charAt(this.pos),false)){
 				break;
 			}
 			this.pos++;
@@ -1214,6 +1227,19 @@ Expression.prototype.isWhite = function(){
 		return true;
 	}
 	return false;
+};
+
+Expression.prototype.checkWhite = function(char,condition){
+	condition=condition||true;
+	//http://en.wikipedia.org/wiki/Whitespace_character
+	var white=["\u00A0","\u0009","\u000A","\u000B","\u000C","\u000D","\u0020","\u0085","\u1680","\u180E"
+	,"\u2000","\u2001","\u2002","\u2003","\u2004","\u2005","\u2006","\u2007","\u2008","\u2009","\u200A","\u2028","\u2029","\u202F","\u205F","\u3000"];
+	for(var i=0; i<white.length;i++){
+		if(char==white[i]){
+			return condition;
+		}
+	}
+	return !condition;
 };
 
 Expression.prototype.unescape = function(v, pos) {
