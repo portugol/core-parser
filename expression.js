@@ -1190,14 +1190,14 @@ Expression.prototype.isRightPar = function(){
 
 Expression.prototype.isWhite = function(){
 	//caracter atual for espaço
-	if(this.checkWhite(this.expr.charAt(this.pos))){
+	if(this.expr.charAt(this.pos)==" " || this.expr.charAt(this.pos)=="\u00a0"){
 		var firstSpace=this.pos;
 		var lastSpace=firstSpace;
 		this.pos++;
 		//calcular último espaço de uma sequência
 		for(var i=this.pos; i<this.expr.length; i++){
 			//se não for espaço
-			if(this.checkWhite(this.expr.charAt(this.pos),false)){
+			if(this.expr.charAt(this.pos)!=" " &&this.expr.charAt(this.pos)!="\u00a0"){
 				break;
 			}
 			this.pos++;
@@ -1229,6 +1229,7 @@ Expression.prototype.isWhite = function(){
 	return false;
 };
 
+/*
 Expression.prototype.checkWhite = function(char,condition){
 	condition=condition||true;
 	//http://en.wikipedia.org/wiki/Whitespace_character
@@ -1240,7 +1241,7 @@ Expression.prototype.checkWhite = function(char,condition){
 		}
 	}
 	return !condition;
-};
+};*/
 
 Expression.prototype.unescape = function(v, pos) {
 	var buffer ="";
